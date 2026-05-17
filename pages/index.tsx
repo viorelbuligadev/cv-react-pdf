@@ -52,7 +52,7 @@ const Home: NextPage = () => {
             <a
               style={{
                 position: "fixed",
-                top: 35,
+                top: 60,
                 right: 15,
                 width: 30,
                 height: 30,
