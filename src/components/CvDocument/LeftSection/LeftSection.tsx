@@ -9,6 +9,7 @@ const LeftSection = () => {
   return (
     <View style={[styles.container]}>
       <View style={styles.profilePictureContainer}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <Image style={styles.profilePicture} src="/images/profile-photo-zoomed.jpg" />
       </View>
       <LeftSectionPanel title={'Contact'}>
@@ -94,7 +95,7 @@ const LeftSection = () => {
       </LeftSectionPanel>
 
       <LeftSectionPanel title="Education">
-        <Text contrast isBold>Technical University "Gheorghe Asachi”</Text>
+        <Text contrast isBold>{'Technical University “Gheorghe Asachi”'}</Text>
         <Text contrast>Engineering Degree</Text>
         <Text contrast>Iasi, 2008 - 2012</Text>
       </LeftSectionPanel>
