@@ -28,7 +28,7 @@ const CvDocumentOnePage = () => {
   }));
 
   return (
-    <Document>
+    <Document title="Viorel Buliga - CV">
       <Page size="A4" style={styles.page}>
         <LeftSection />
         <RightSection

@@ -25,7 +25,7 @@ const CvDocument = () => {
   const projects: ProjectCardProps[] = enabledProjectsAll.map(projectName => projectsByName[projectName]);
 
   return (
-    <Document>
+    <Document title="Viorel Buliga - CV">
       <Page size="A4" style={styles.page}>
         <LeftSection/>
         <RightSection
