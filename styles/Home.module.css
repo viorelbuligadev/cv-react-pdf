@@ -76,6 +76,44 @@
   color: #3b82f6;
 }
 
+.getInTouch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.getInTouchLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #475569;
+}
+
+.contactLinks {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.contactLink {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.contactLink:hover {
+  color: #3b82f6;
+}
+
 .certifications {
   display: flex;
   flex-wrap: wrap;
