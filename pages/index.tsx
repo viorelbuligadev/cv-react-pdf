@@ -24,6 +24,8 @@ const countries = [
   { code: 'be', name: 'Belgium' },
 ];
 
+const SITE_URL = 'https://viorelbuliga.com';
+
 const Home: NextPage = () => {
   const [showFullPdf, setShowFullPdf] = useState(false);
   const [showOnePagePdf, setShowOnePagePdf] = useState(false);
@@ -42,9 +44,55 @@ const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Viorel Buliga CV</title>
-        <meta name="description" content="Viorel Buliga - Senior AI/.NET/Cloud Engineer" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Viorel Buliga - Senior AI · .NET · Cloud Engineer</title>
+        <meta name="description" content="Senior Software Engineer specializing in AI, .NET, and Cloud. Certified in AWS, Azure, and Terraform. Available for remote opportunities across the US and EU." />
+        <link rel="canonical" href={SITE_URL} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:title" content="Viorel Buliga - Senior AI · .NET · Cloud Engineer" />
+        <meta property="og:description" content="Senior Software Engineer specializing in AI, .NET, and Cloud. Certified in AWS, Azure, and Terraform. Available for remote opportunities across the US and EU." />
+        <meta property="og:image" content={`${SITE_URL}/images/profile-photo-zoomed.jpg`} />
+        <meta property="og:image:width" content="140" />
+        <meta property="og:image:height" content="140" />
+        <meta property="og:image:alt" content="Viorel Buliga" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="profile:first_name" content="Viorel" />
+        <meta property="profile:last_name" content="Buliga" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Viorel Buliga - Senior AI · .NET · Cloud Engineer" />
+        <meta name="twitter:description" content="Senior Software Engineer specializing in AI, .NET, and Cloud. Certified in AWS, Azure, and Terraform." />
+        <meta name="twitter:image" content={`${SITE_URL}/images/profile-photo-zoomed.jpg`} />
+
+        {/* JSON-LD Person schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Person',
+              name: 'Viorel Buliga',
+              url: SITE_URL,
+              image: `${SITE_URL}/images/profile-photo-zoomed.jpg`,
+              jobTitle: 'Senior AI / .NET / Cloud Engineer',
+              knowsAbout: ['Artificial Intelligence', '.NET', 'Azure', 'AWS', 'Terraform', 'Angular', 'React', 'Cloud Engineering'],
+              hasCredential: [
+                { '@type': 'EducationalOccupationalCredential', name: 'AWS Cloud Practitioner' },
+                { '@type': 'EducationalOccupationalCredential', name: 'Azure Fundamentals' },
+                { '@type': 'EducationalOccupationalCredential', name: 'Azure Developer Associate' },
+                { '@type': 'EducationalOccupationalCredential', name: 'Terraform Associate' },
+              ],
+              sameAs: [
+                'https://www.linkedin.com/in/viorel-buliga/',
+                'https://github.com/viorelbuligadev',
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <main className={styles.main}>
