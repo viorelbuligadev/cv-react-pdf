@@ -8,9 +8,10 @@
 .main {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: 3rem 1.5rem;
+  padding: 3rem 1.5rem 5rem;
+  gap: 5rem;
 }
 
 .hero {
@@ -217,6 +218,80 @@
 
 .closeButton:hover {
   background: #475569;
+}
+
+.recommendations {
+  width: 100%;
+  max-width: 960px;
+}
+
+.sectionTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 2rem;
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+.recommendationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.recommendationCard {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.recommendationCard:hover {
+  border-color: #3b82f6;
+}
+
+.recommendationQuote {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  margin: 0;
+  flex: 1;
+}
+
+.recommendationAuthor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #334155;
+}
+
+.recommendationName {
+  color: #f1f5f9;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.recommendationRole {
+  color: #3b82f6;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.recommendationRelation {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .recommendationGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {

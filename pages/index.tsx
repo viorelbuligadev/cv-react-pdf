@@ -26,6 +26,75 @@ const countries = [
 
 const SITE_URL = 'https://viorelbuliga.com';
 
+const recommendations = [
+  {
+    name: 'Gaurank Goyal',
+    role: 'Cloud Architect @ Siemens Energy',
+    relation: 'Managed Viorel directly · April 2026',
+    text: 'I had the opportunity to work with Viorel, and he consistently impressed me with his strong technical expertise in .NET and Azure DevOps, along with his ability to deliver high-quality work. He is proactive, dependable, and a pleasure to work with. I would highly recommend him for any role requiring expertise in .NET, Azure Cloud, and Azure DevOps.',
+  },
+  {
+    name: 'Andreea Alexandru',
+    role: 'QA Engineer',
+    relation: 'Worked on the same team · January 2026',
+    text: 'I had the pleasure of working with Viorel on a complex project where close collaboration between QA and development was essential. From a tester\'s perspective, he is the kind of developer who truly makes a difference. He approaches requirements with a strong understanding of their business impact, writes clean and well-structured code, and is always open to feedback. What I appreciated most was the way bugs and edge cases were handled—with responsibility, attention to detail, and a genuine desire to deliver a stable, high-quality solution. Communication with Viorel was always clear and solution-oriented. I would confidently recommend Viorel to any team looking for a technically strong developer and a reliable team player who truly values quality and teamwork.',
+  },
+  {
+    name: 'Stephanie Kellotat',
+    role: 'Scrum Master · BROCKHAUS AG',
+    relation: 'Worked on the same team · December 2024',
+    text: 'I had the pleasure of working with Viorel in a Scrum team on a complex ETRM software project, where he served as a Senior .NET Developer and I as the Scrum Master. Viorel consistently demonstrated a remarkable combination of reliability, openness, and proactivity, embodying the self-responsibility and initiative that agile teams thrive on. His expertise made him a cornerstone of the team, not only as a skilled developer but also as a trusted point of contact for testers, business analysts, and fellow developers. I truly appreciated his collaborative spirit and would welcome the chance to work with him again.',
+  },
+  {
+    name: 'Mariyan Draganov',
+    role: '.NET Developer · LEAD Consult',
+    relation: 'Worked on the same team · September 2024',
+    text: 'I have been working with Viorel for the past two years on various challenging projects at E.on. Throughout this time I have always been able to rely on Viorel and his vast expertise in Azure backend development. His deep knowledge of cloud architecture, coupled with his ability to implement scalable and reliable solutions, has been instrumental in the success of our projects.',
+  },
+  {
+    name: 'Radhika Inamdar',
+    role: 'ETRM Senior Consultant · E.ON Utilities',
+    relation: 'Worked on the same team · September 2024',
+    text: 'I have had the immense pleasure of working with Viorel, who consistently displays thoughtfulness and a methodical approach to issue fixing. As a QA, it is a breeze to test his implementation, and he is always approachable to answer any queries. What impresses me the most about Viorel is his tech savviness in .NET and Azure development. Discussing technical loopholes with him is always an enlightening experience. Moreover, I greatly appreciate his patience and determination and count on these qualities when working on any project with him.',
+  },
+  {
+    name: 'Swayam Mishra',
+    role: 'Digital Transformation & Enterprise Solution Architecture · Cloud, Data & AI',
+    relation: 'Was Viorel\'s client · March 2023',
+    text: 'It was a real pleasure to know and work with Viorel during a few challenging e.on projects. He is very strong in .NET, Microservice, and Azure development topics. Viorel demonstrates his leaning of best practices and patterns and applies them to improve the quality of application. Viorel is continuously self-learning, always focused, detailed, sincere and finally a great team player to work with.',
+  },
+  {
+    name: 'Mircea Fechet',
+    role: 'Senior .NET QA Automation Engineer · Contractor',
+    relation: 'Worked on different teams · March 2023',
+    text: 'If you\'re looking for someone who\'s knowledgeable, dedicated and has great problem-solving skills, Viorel is your guy. I\'ve had the pleasure of knowing him several years ago, and he\'s always been a great team player and a valuable asset to any project he\'s been involved in. If you have any Senior .NET Engineer positions available, I highly recommend you consider Viorel for the role. You won\'t be disappointed!',
+  },
+  {
+    name: 'Carla Dall\'Aglio',
+    role: 'Presidente · NewBit srl',
+    relation: 'Was senior to Viorel · January 2023',
+    text: 'We have collaborated with Viorel for the review and development of software for the management of production processes, with excellent results. Viorel proved to be reliable and professional.',
+  },
+  {
+    name: 'Iulian Holonca',
+    role: 'Solution Architect · Senior Software Engineer',
+    relation: 'Managed Viorel directly · January 2023',
+    text: 'I worked with Viorel on an e-commerce system at Romsoft. He had a talent in wrapping legacy code and he always met due dates. He was passionate about technology and about finding the best solutions. He is the type of developer who will look for ways of doing things better even without express assignments. We were sorry to see him leave.',
+  },
+  {
+    name: 'Paul Enascut',
+    role: 'Senior AI Engineer · .NET & Azure Developer',
+    relation: 'Worked on the same team · January 2023',
+    text: 'Viorel is an experienced and a very learned developer. He has a very good expertise not only on software development but also on standards and concepts of software quality. Always happy to help, understanding and keeping eye on detail, he has been a real asset to the team.',
+  },
+  {
+    name: 'Draghici Florin',
+    role: '.NET Developer (Fullstack)',
+    relation: 'Worked on the same team · January 2023',
+    text: 'It is my pleasure to highly recommend Viorel for any role in the technology industry. Viorel\'s technical skills are second to none. He is a highly skilled C# and Azure developer and his proficiency in these technologies is evident in the quality of his work. He is always willing to go the extra mile to ensure that projects are delivered on time and to the highest standard. One of Viorel\'s greatest strengths is his ability to work well in a team — a great collaborator and communicator, his positive attitude and willingness to help others is contagious. He is highly reliable, always respects deadlines, and is committed to delivering the best results possible.',
+  },
+];
+
 const Home: NextPage = () => {
   const [showFullPdf, setShowFullPdf] = useState(false);
   const [showOnePagePdf, setShowOnePagePdf] = useState(false);
@@ -180,6 +249,22 @@ const Home: NextPage = () => {
             </button>
           </div>
         </div>
+
+        <section className={styles.recommendations}>
+          <h2 className={styles.sectionTitle}>Trusted by those who shipped with me</h2>
+          <div className={styles.recommendationGrid}>
+            {recommendations.map(rec => (
+              <div key={rec.name} className={styles.recommendationCard}>
+                <p className={styles.recommendationQuote}>{rec.text}</p>
+                <div className={styles.recommendationAuthor}>
+                  <strong className={styles.recommendationName}>{rec.name}</strong>
+                  <span className={styles.recommendationRole}>{rec.role}</span>
+                  <span className={styles.recommendationRelation}>{rec.relation}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
