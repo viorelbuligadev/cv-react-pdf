@@ -4,7 +4,7 @@ import styles from './Article.module.css';
 const Az204Retirement = () => (
   <div className={styles.article}>
     <p className={styles.lead}>
-      I hold the AZ-204: Developing Solutions for Microsoft Azure certification. So when Microsoft announced it is retiring on July 31, 2026, I started looking into what this actually means.
+      I hold the Microsoft Certified: Azure Developer Associate certification. So when Microsoft announced it is retiring on July 31, 2026, I started looking into what this actually means.
     </p>
 
     <h2>What is changing</h2>
