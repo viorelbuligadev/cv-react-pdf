@@ -1,0 +1,79 @@
+.article {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--blog-text);
+}
+
+.article h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2.5rem 0 1rem;
+  color: var(--blog-text);
+  letter-spacing: -0.3px;
+}
+
+.article h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+  color: var(--blog-text);
+}
+
+.article p {
+  margin: 0 0 1.25rem;
+  color: var(--blog-text-muted);
+}
+
+.article p strong {
+  color: var(--blog-text);
+}
+
+.article ul {
+  margin: 0 0 1.25rem 1.25rem;
+  padding: 0;
+}
+
+.article ul li {
+  margin-bottom: 0.5rem;
+  color: var(--blog-text-muted);
+}
+
+.article ul li strong {
+  color: var(--blog-text);
+}
+
+.lead {
+  font-size: 1.15rem;
+  color: var(--blog-text) !important;
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+}
+
+.callout {
+  background: var(--blog-bg-secondary);
+  border-left: 4px solid var(--blog-accent);
+  border-radius: 0 12px 12px 0;
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  color: var(--blog-text);
+  font-size: 1rem;
+}
+
+.link {
+  color: var(--blog-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.15s;
+}
+
+.link:hover {
+  opacity: 0.75;
+}
+
+.blockquote {
+  border-left: 4px solid var(--blog-border);
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.5rem;
+  color: var(--blog-text-muted);
+  font-style: italic;
+}
