@@ -1,0 +1,141 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 60px;
+  border-bottom: 1px solid var(--blog-border);
+  background: var(--blog-bg);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--blog-text);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.brand:hover {
+  color: var(--blog-accent);
+}
+
+.center {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navLink {
+  color: var(--blog-text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.navLink:hover {
+  color: var(--blog-text);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--blog-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.iconBtn:hover {
+  background: var(--blog-bg-secondary);
+  color: var(--blog-text);
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchInput {
+  background: var(--blog-bg-secondary);
+  border: 1px solid var(--blog-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--blog-text);
+  outline: none;
+  width: 200px;
+  transition: border-color 0.15s;
+}
+
+.searchInput:focus {
+  border-color: var(--blog-accent);
+}
+
+.searchInput::placeholder {
+  color: var(--blog-text-muted);
+}
+
+.themeWrapper {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: var(--blog-bg);
+  border: 1px solid var(--blog-border);
+  border-radius: 10px;
+  padding: 0.4rem;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  color: var(--blog-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: var(--blog-bg-secondary);
+  color: var(--blog-text);
+}
+
+.dropdownItem.active {
+  color: var(--blog-text);
+}
+
+.check {
+  margin-left: auto;
+  color: var(--blog-accent);
+  font-size: 0.8rem;
+}

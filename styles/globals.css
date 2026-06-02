@@ -1,9 +1,29 @@
+:root,
+[data-theme="dark"] {
+  --blog-bg: #0f172a;
+  --blog-bg-secondary: #1e293b;
+  --blog-border: #334155;
+  --blog-text: #f1f5f9;
+  --blog-text-muted: #94a3b8;
+  --blog-accent: #3b82f6;
+}
+
+[data-theme="light"] {
+  --blog-bg: #ffffff;
+  --blog-bg-secondary: #f8fafc;
+  --blog-border: #e2e8f0;
+  --blog-text: #0f172a;
+  --blog-text-muted: #64748b;
+  --blog-accent: #2563eb;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  transition: background 0.2s, color 0.2s;
 }
 
 a {
