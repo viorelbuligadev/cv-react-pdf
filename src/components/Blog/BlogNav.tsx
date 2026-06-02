@@ -60,7 +60,7 @@ const BlogNav: React.FC<BlogNavProps> = ({ onSearch, showSearch = false }) => {
       <Link href="/blog"><a className={styles.brand}>Viorel Buliga</a></Link>
 
       <div className={styles.center}>
-        <Link href="/" className={styles.navLink}>About me</Link>
+        <Link href="/"><a className={styles.navLink}>About me</a></Link>
       </div>
 
       <div className={styles.actions}>
