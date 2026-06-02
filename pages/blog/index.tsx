@@ -48,7 +48,7 @@ const BlogIndex: NextPage = () => {
             </Link>
           ))}
           {filtered.length === 0 && (
-            <p className={styles.empty}>No articles found for "{query}".</p>
+            <p className={styles.empty}>No articles found for &quot;{query}&quot;.</p>
           )}
         </div>
       </main>
