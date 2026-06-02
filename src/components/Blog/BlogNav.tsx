@@ -57,6 +57,7 @@ const BlogNav: React.FC<BlogNavProps> = ({ onSearch, showSearch = false }) => {
 
   return (
     <nav className={styles.nav}>
+      <div className={styles.inner}>
       <Link href="/blog"><a className={styles.brand}>Viorel Buliga</a></Link>
 
       <div className={styles.center}>
@@ -103,6 +104,7 @@ const BlogNav: React.FC<BlogNavProps> = ({ onSearch, showSearch = false }) => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </nav>
   );
