@@ -27,7 +27,7 @@ const BlogPostPage: NextPage<Props> = ({ post }) => {
         <meta property="og:description" content={post.description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://viorelbuliga.com/blog/${post.slug}`} />
-        <meta property="og:image" content="https://viorelbuliga.com/images/profile-photo-zoomed.jpg" />
+        <meta property="og:image" content={`https://viorelbuliga.com${post.image}`} />
         <meta property="article:published_time" content={post.date} />
         <meta property="article:author" content="Viorel Buliga" />
         {post.tags.map(tag => (
