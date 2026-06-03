@@ -59,6 +59,53 @@
   font-size: 1rem;
 }
 
+.quickAnswer {
+  background: var(--blog-bg-secondary);
+  border: 1px solid var(--blog-border);
+  border-left: 4px solid var(--blog-accent);
+  border-radius: 0 12px 12px 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--blog-text-muted);
+  line-height: 1.65;
+}
+
+.quickAnswer strong {
+  color: var(--blog-text);
+}
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1.25rem;
+}
+
+.faqItem {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--blog-border);
+}
+
+.faqItem:first-child {
+  border-top: 1px solid var(--blog-border);
+}
+
+.faqQ {
+  display: block;
+  color: var(--blog-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.faqA {
+  color: var(--blog-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
 .link {
   color: var(--blog-accent);
   text-decoration: underline;

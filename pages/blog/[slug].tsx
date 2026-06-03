@@ -25,7 +25,60 @@ const BlogPostPage: NextPage<Props> = ({ post }) => {
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.description} />
         <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://viorelbuliga.com/blog/${post.slug}`} />
+        <meta property="og:image" content="https://viorelbuliga.com/images/profile-photo-zoomed.jpg" />
+        <meta property="article:published_time" content={post.date} />
+        <meta property="article:author" content="Viorel Buliga" />
+        {post.tags.map(tag => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+        <link rel="canonical" href={`https://viorelbuliga.com/blog/${post.slug}`} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+
+        {/* JSON-LD BlogPosting schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BlogPosting',
+              headline: post.title,
+              description: post.description,
+              url: `https://viorelbuliga.com/blog/${post.slug}`,
+              datePublished: post.date,
+              dateModified: post.date,
+              keywords: post.tags.join(', '),
+              author: {
+                '@type': 'Person',
+                name: 'Viorel Buliga',
+                url: 'https://viorelbuliga.com',
+                sameAs: ['https://www.linkedin.com/in/viorel-buliga/', 'https://github.com/viorelbuligadev'],
+              },
+              publisher: {
+                '@type': 'Person',
+                name: 'Viorel Buliga',
+                url: 'https://viorelbuliga.com',
+              },
+              mainEntityOfPage: `https://viorelbuliga.com/blog/${post.slug}`,
+            }),
+          }}
+        />
+
+        {/* JSON-LD FAQ schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: post.faq.map(({ q, a }) => ({
+                '@type': 'Question',
+                name: q,
+                acceptedAnswer: { '@type': 'Answer', text: a },
+              })),
+            }),
+          }}
+        />
       </Head>
 
       <BlogNav />
