@@ -8,6 +8,7 @@ import styles from '../../styles/BlogPost.module.css';
 
 const contentMap: Record<string, React.ComponentType> = {
   'az-204-retirement-ai-200': dynamic(() => import('../../src/blog/content/az-204-retirement')),
+  'sql-joins-inner-left-right': dynamic(() => import('../../src/blog/content/sql-joins')),
 };
 
 interface Props {

@@ -117,6 +117,53 @@
   opacity: 0.75;
 }
 
+.code {
+  background: var(--blog-bg-secondary);
+  border: 1px solid var(--blog-border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: var(--blog-text);
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+.tableWrapper {
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.tableWrapper p {
+  margin-bottom: 0.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--blog-border);
+  text-align: left;
+  color: var(--blog-text-muted);
+}
+
+.table th {
+  background: var(--blog-bg-secondary);
+  color: var(--blog-text);
+  font-weight: 600;
+}
+
+.table tr:hover td {
+  background: var(--blog-bg-secondary);
+}
+
 .blockquote {
   border-left: 4px solid var(--blog-border);
   margin: 1.5rem 0;
