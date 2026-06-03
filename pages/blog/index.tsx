@@ -17,7 +17,7 @@ const BlogIndex: NextPage = () => {
   return (
     <div className={styles.page}>
       <Head>
-        <title>Blog — Viorel Buliga</title>
+        <title>Blog - Viorel Buliga</title>
         <meta name="description" content="Thoughts on AI, .NET, Azure, and cloud engineering by Viorel Buliga." />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
       </Head>
