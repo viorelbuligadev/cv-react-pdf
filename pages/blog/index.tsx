@@ -19,6 +19,15 @@ const BlogIndex: NextPage = () => {
       <Head>
         <title>Blog - Viorel Buliga</title>
         <meta name="description" content="Thoughts on AI, .NET, Azure, and cloud engineering by Viorel Buliga." />
+        <link rel="canonical" href="https://viorelbuliga.com/blog" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://viorelbuliga.com/blog" />
+        <meta property="og:title" content="Blog - Viorel Buliga" />
+        <meta property="og:description" content="Thoughts on AI, .NET, Azure, and cloud engineering by Viorel Buliga." />
+        <meta property="og:image" content="https://viorelbuliga.com/images/profile-photo-zoomed.jpg" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Blog - Viorel Buliga" />
+        <meta name="twitter:description" content="Thoughts on AI, .NET, Azure, and cloud engineering by Viorel Buliga." />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
       </Head>
 

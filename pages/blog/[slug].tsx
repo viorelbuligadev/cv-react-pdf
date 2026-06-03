@@ -27,12 +27,19 @@ const BlogPostPage: NextPage<Props> = ({ post }) => {
         <meta property="og:description" content={post.description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://viorelbuliga.com/blog/${post.slug}`} />
-        <meta property="og:image" content="https://viorelbuliga.com/images/profile-photo-zoomed.jpg" />
+        <meta property="og:image" content={`https://viorelbuliga.com${post.image}`} />
         <meta property="article:published_time" content={post.date} />
         <meta property="article:author" content="Viorel Buliga" />
         {post.tags.map(tag => (
           <meta key={tag} property="article:tag" content={tag} />
         ))}
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.description} />
+        <meta name="twitter:image" content={`https://viorelbuliga.com${post.image}`} />
+
         <link rel="canonical" href={`https://viorelbuliga.com/blog/${post.slug}`} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
 
@@ -45,6 +52,7 @@ const BlogPostPage: NextPage<Props> = ({ post }) => {
               '@type': 'BlogPosting',
               headline: post.title,
               description: post.description,
+              image: `https://viorelbuliga.com${post.image}`,
               url: `https://viorelbuliga.com/blog/${post.slug}`,
               datePublished: post.date,
               dateModified: post.date,
