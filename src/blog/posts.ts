@@ -39,7 +39,7 @@ export const posts: BlogPost[] = [
     date: '2026-06-04',
     readTime: 6,
     tags: ['C#', '.NET', 'Backend'],
-    image: '/images/profile-photo-zoomed.jpg',
+    image: '/images/csharp-records.png',
     faq: [
       { q: 'When were records introduced in C#?', a: 'Record classes were introduced in C# 9 (released with .NET 5 in November 2020). Record structs and readonly record structs were added in C# 10 (released with .NET 6 in November 2021).' },
       { q: 'Are records immutable in C#?', a: 'Positional record class properties are init-only by default, meaning they cannot be changed after the object is constructed. However, you can declare a record with mutable set properties if needed. Record structs are mutable by default - use readonly record struct for immutability.' },

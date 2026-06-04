@@ -155,7 +155,7 @@ Console.WriteLine(dog); // Dog { Name = Rex, Breed = Labrador }`}</pre>
       </table>
     </div>
     <p>
-      A good rule of thumb: if you find yourself writing <code>new MyClass { ... }</code> just to hold some data and pass it around, a record is probably the better fit.
+      A good rule of thumb: if you find yourself writing <code>{'new MyClass { ... }'}</code> just to hold some data and pass it around, a record is probably the better fit.
     </p>
 
     <h2>Frequently asked questions</h2>
