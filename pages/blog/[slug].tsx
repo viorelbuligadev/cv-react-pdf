@@ -10,6 +10,7 @@ const contentMap: Record<string, React.ComponentType> = {
   'az-204-retirement-ai-200': dynamic(() => import('../../src/blog/content/az-204-retirement')),
   'sql-joins-inner-left-right': dynamic(() => import('../../src/blog/content/sql-joins')),
   'csharp-records-vs-classes': dynamic(() => import('../../src/blog/content/csharp-records-vs-classes')),
+  'python-async-await-asyncio': dynamic(() => import('../../src/blog/content/python-async-await-asyncio')),
 };
 
 interface Props {
