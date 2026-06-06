@@ -33,6 +33,23 @@ export const posts: BlogPost[] = [
     ],
   },
   {
+    slug: 'python-async-await-asyncio',
+    title: 'Python async/await Explained: How asyncio Works and When to Use It',
+    description: 'Learn how Python\'s async/await syntax and asyncio event loop work. Covers coroutines, tasks, asyncio.gather, asyncio.TaskGroup, and when to choose asyncio over threading or multiprocessing.',
+    date: '2026-06-06',
+    readTime: 6,
+    tags: ['Python', 'asyncio', 'Backend', 'Concurrency'],
+    image: '/images/profile-photo-zoomed.jpg',
+    faq: [
+      { q: 'When was asyncio added to Python?', a: 'asyncio was introduced as a provisional module in Python 3.4. The async and await keywords (PEP 492) were added in Python 3.5. asyncio.run() arrived in Python 3.7, and asyncio.TaskGroup was added in Python 3.11.' },
+      { q: 'Is asyncio faster than threading for I/O-bound work?', a: 'For I/O-bound work, asyncio is typically more efficient because it uses a single thread with no context-switching overhead. However, asyncio cannot run truly blocking code without freezing the event loop, while threads handle that naturally.' },
+      { q: 'What happens if I forget to await a coroutine?', a: 'Python emits a RuntimeWarning: coroutine \'your_function\' was never awaited. The coroutine never runs. Always await coroutines or schedule them as tasks with asyncio.create_task().' },
+      { q: 'Can I use asyncio with synchronous blocking code?', a: 'Yes. Use asyncio.to_thread() to run a blocking synchronous function in a separate thread without blocking the event loop. This lets you mix async code with libraries that do not support async natively.' },
+      { q: 'What is the difference between asyncio.gather() and asyncio.TaskGroup?', a: 'gather() runs awaitables concurrently but does not cancel remaining tasks when one fails. TaskGroup (Python 3.11+) cancels all remaining tasks in the group if any one of them raises an exception - making it safer and the preferred modern approach.' },
+      { q: 'Does asyncio bypass the GIL?', a: 'No. asyncio runs on a single thread so the GIL is not a concern - there is no contention between threads. To bypass the GIL for CPU-bound work, use multiprocessing instead.' },
+    ],
+  },
+  {
     slug: 'csharp-records-vs-classes',
     title: 'C# Records vs Classes: When to Use Each and Why',
     description: 'Records and classes look similar in C# but behave very differently. Learn how value equality, with expressions, and immutability make records the right choice for data models - and when to stick with classes.',
