@@ -33,6 +33,23 @@ export const posts: BlogPost[] = [
     ],
   },
   {
+    slug: 'python-async-await-explained',
+    title: 'Python async/await Explained: Coroutines, Tasks, and the Event Loop',
+    description: 'Learn how Python async/await and asyncio work - what the event loop is, the difference between coroutines and tasks, how asyncio.gather() runs things concurrently, and when to use async code.',
+    date: '2026-06-10',
+    readTime: 7,
+    tags: ['Python', 'asyncio', 'Backend'],
+    image: '/images/profile-photo-zoomed.jpg',
+    faq: [
+      { q: 'When was async/await introduced in Python?', a: 'The async and await keywords were introduced in Python 3.5 through PEP 492. The asyncio module itself was first added in Python 3.4 as a provisional library, and asyncio.run() was added in Python 3.7.' },
+      { q: 'Does calling an async function run it?', a: 'No. Calling an async def function returns a coroutine object but does not execute the body. You must schedule and await the coroutine - for example with asyncio.run() at the top level, or with await inside another coroutine.' },
+      { q: 'What is the difference between asyncio.create_task() and await?', a: 'await runs a coroutine to completion before moving on. asyncio.create_task() schedules a coroutine as a Task on the event loop immediately, so it can run in the background while other code runs. You can await the task later to get its result.' },
+      { q: 'Can I use async/await with regular (synchronous) functions?', a: 'The await keyword can only be used inside an async def function. If you need to run a blocking synchronous function without blocking the event loop, use asyncio.to_thread() to run it in a thread pool.' },
+      { q: 'Does async/await use multiple threads?', a: 'No. By default asyncio runs on a single thread. Tasks run concurrently by taking turns on the event loop - one task pauses at an await, and the loop runs another. For true parallelism across CPU cores, use the multiprocessing module or run_in_executor with a ProcessPoolExecutor.' },
+      { q: 'Is async/await faster than threading for I/O-bound code?', a: 'It can be, especially at high concurrency. asyncio tasks are lighter than OS threads because they do not require context switches managed by the operating system. The official documentation positions asyncio as well-suited for high-performance network and web servers. Performance always depends on the specific workload and libraries used.' },
+    ],
+  },
+  {
     slug: 'csharp-records-vs-classes',
     title: 'C# Records vs Classes: When to Use Each and Why',
     description: 'Records and classes look similar in C# but behave very differently. Learn how value equality, with expressions, and immutability make records the right choice for data models - and when to stick with classes.',

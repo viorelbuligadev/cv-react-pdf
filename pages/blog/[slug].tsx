@@ -8,6 +8,7 @@ import styles from '../../styles/BlogPost.module.css';
 
 const contentMap: Record<string, React.ComponentType> = {
   'az-204-retirement-ai-200': dynamic(() => import('../../src/blog/content/az-204-retirement')),
+  'python-async-await-explained': dynamic(() => import('../../src/blog/content/python-async-await-explained')),
   'sql-joins-inner-left-right': dynamic(() => import('../../src/blog/content/sql-joins')),
   'csharp-records-vs-classes': dynamic(() => import('../../src/blog/content/csharp-records-vs-classes')),
 };
