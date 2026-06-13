@@ -50,6 +50,23 @@ export const posts: BlogPost[] = [
     ],
   },
   {
+    slug: 'python-type-hints-explained',
+    title: 'Python Type Hints Explained: How to Annotate Your Code and Catch Bugs Earlier',
+    description: 'Type hints let you declare what types Python functions and variables expect. Learn the core syntax, Optional, Union, the modern X | None shorthand, and what changed in Python 3.9, 3.10, and 3.12.',
+    date: '2026-06-13',
+    readTime: 6,
+    tags: ['Python', 'Backend', 'Types'],
+    image: '/images/profile-photo-zoomed.jpg',
+    faq: [
+      { q: 'Does Python enforce type hints at runtime?', a: 'No. Python does not check or enforce type annotations during execution. Passing the wrong type raises no error unless you add explicit validation. Type hints exist for static analysis tools, IDEs, and documentation.' },
+      { q: 'When were Python type hints introduced?', a: 'Type hints were introduced in Python 3.5 via PEP 484. Variable annotations were added in Python 3.6 via PEP 526. The typing module provides Optional, Union, and other special forms.' },
+      { q: 'What is the difference between Optional[str] and str | None?', a: 'They are equivalent. Optional[str] is shorthand for Union[str, None]. The str | None syntax was introduced in Python 3.10 via PEP 604 as a cleaner alternative. Both mean the value can be a string or absent.' },
+      { q: 'Do I still need to import from typing in Python 3.9+?', a: 'Not for basic container types. Since Python 3.9, you can write list[str], dict[str, int], and tuple[int, ...] directly without importing List, Dict, or Tuple from typing. You still need to import Optional, Union, Any, TypeVar, and other special forms.' },
+      { q: 'What is mypy and do I need it?', a: 'Mypy is a static type checker for Python maintained by the Python community. It reads your type annotations and reports type errors without running your code. You do not need it to use type hints, but adding mypy to your CI pipeline makes type hints much more useful.' },
+      { q: 'Can I add type hints to existing Python 2-style code?', a: 'If you cannot change the source, you can provide type stubs - separate .pyi files that contain only type annotations. This is how popular libraries like requests provide type information for older code.' },
+    ],
+  },
+  {
     slug: 'sql-joins-inner-left-right',
     title: 'SQL JOINs Explained: INNER, LEFT, RIGHT, FULL OUTER and SELF JOIN with Examples',
     description: 'A clear explanation of SQL INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN and SELF JOIN with practical examples. Learn what each join returns and when to use it.',
