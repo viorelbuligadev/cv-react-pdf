@@ -9,10 +9,17 @@ import styles from '../../styles/Blog.module.css';
 const BlogIndex: NextPage = () => {
   const [query, setQuery] = useState('');
 
-  const filtered = posts.filter(p =>
-    p.title.toLowerCase().includes(query.toLowerCase()) ||
-    p.description.toLowerCase().includes(query.toLowerCase())
-  );
+  const HIDDEN_SLUGS = [
+    'ca2012-valuetask-correctly',
+    'dotnet-task-async-await',
+  ];
+
+  const filtered = posts
+    .filter(p => !HIDDEN_SLUGS.includes(p.slug))
+    .filter(p =>
+      p.title.toLowerCase().includes(query.toLowerCase()) ||
+      p.description.toLowerCase().includes(query.toLowerCase())
+    );
 
   return (
     <div className={styles.page}>

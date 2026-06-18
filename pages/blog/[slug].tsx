@@ -10,6 +10,9 @@ const contentMap: Record<string, React.ComponentType> = {
   'az-204-retirement-ai-200': dynamic(() => import('../../src/blog/content/az-204-retirement')),
   'sql-joins-inner-left-right': dynamic(() => import('../../src/blog/content/sql-joins')),
   'csharp-records-vs-classes': dynamic(() => import('../../src/blog/content/csharp-records-vs-classes')),
+  'dotnet-task-async-await': dynamic(() => import('../../src/blog/content/dotnet-task-async-await')),
+  'ca2012-valuetask-correctly': dynamic(() => import('../../src/blog/content/ca2012-valuetask-correctly')),
+  'impedance-mismatch-explained': dynamic(() => import('../../src/blog/content/impedance-mismatch-explained')),
 };
 
 interface Props {

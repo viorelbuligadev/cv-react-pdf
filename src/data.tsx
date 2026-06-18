@@ -49,7 +49,7 @@ export const projectsByName = {
       <><Text isBold>Built the core subscribe/unsubscribe flow for filter-based email notifications</Text>, enabling users to self-manage their alerts and reducing the volume of irrelevant emails received.</>,
       <><Text isBold>Removed manual database deployment steps from the release process</Text> by automating EF Core migrations in Azure DevOps pipelines, guaranteeing the database schema is up-to-date just before the application is deployed.</>,
     ],
-    skills: ['C#', '.ASP.NET Core', 'Angular', 'TypeScript', 'Azure Cloud', 'Azure DevOps', 'Terraform', 'Docker', 'Container Apps', 'Azure SQL Database', 'Service Bus', 'PowerShell', 'YAML', 'GitHub Copilot'],
+    skills: ['C#', '.ASP.NET Core', 'Angular', 'TypeScript', 'Python', 'FastAPI', 'Azure Cloud', 'Azure DevOps', 'Terraform', 'Docker', 'Container Apps', 'Azure SQL Database', 'Service Bus', 'PowerShell', 'YAML', 'GitHub Copilot', ],
   },
   etrm: {
     projectName: 'Energy Trading System - ETRM',
@@ -62,7 +62,7 @@ export const projectsByName = {
       <><Text isBold>Increased trade processing throughput by 10x</Text> by moving complex trade decomposition out of Allegro into a cloud-native, event-driven pipeline built on Azure Functions, Azure App Services, Service Bus, and CosmosDB.</>,
       <><Text isBold>Reduced production issue investigation time by 80%</Text> by adding correlation IDs across the request pipeline, enabling engineers to trace a single transaction end-to-end through all microservices involved.</>,
     ],
-    skills: ['C#', '.NET 8', 'ASP.NET Core 8', 'Azure Functions', 'Azure CosmosDB', 'Blob Storage', 'Service Bus', 'Kafka', 'Angular', 'TypeScript', 'Python', 'FastAPI', 'Event-Driven Architecture', 'Azure Event Hub', 'Kafka', 'DDD', 'Azure DevOps'],
+    skills: ['C#', '.NET 8', 'ASP.NET Core 8', 'Azure Functions', 'Azure CosmosDB', 'Blob Storage', 'Service Bus', 'Kafka', 'Angular', 'TypeScript', 'Event-Driven Architecture', 'Azure Event Hub', 'Kafka', 'DDD', 'Azure DevOps'],
   },
   costko: {
     projectName: 'COST MANAGEMENT SYSTEM',
