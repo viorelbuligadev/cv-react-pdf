@@ -5,12 +5,18 @@ const EfCoreDesignPatterns = () => (
   <div className={styles.article}>
 
     <div className={styles.quickAnswer}>
-      <strong>Quick answer:</strong> EF Core implements at least 12 design patterns. The three most fundamental are <strong>Unit of Work</strong> (DbContext), <strong>Repository</strong> (DbSet&lt;T&gt;), and <strong>Identity Map</strong> (change tracker). Understanding these patterns explains most of EF Core's behaviour - and most of its surprises. The rest - Builder, Strategy, Proxy, Factory, Object Pool, Interceptor, Template Method, Query Object, Value Object - explain everything else.
+      <strong>Quick answer:</strong> EF Core implements at least 11 design patterns. The three most fundamental are <strong>Unit of Work</strong> (DbContext), <strong>Repository</strong> (DbSet&lt;T&gt;), and <strong>Identity Map</strong> (change tracker). Understanding these patterns explains most of EF Core's behaviour - and most of its surprises. The rest - Builder, Strategy, Factory, Object Pool, Interceptor, Template Method, Query Object, Value Object - explain everything else.
     </div>
 
     <p className={styles.lead}>
       The first time I read the Gang of Four I did not think much about ORMs. Years later, working with EF Core daily, I started recognising the same patterns everywhere - in how DbContext tracks changes, in how ModelBuilder configures entities, in how lazy loading proxies work. EF Core is not just a data access library. It is a textbook of enterprise patterns in working code.
     </p>
+
+    <img
+      src="/images/efcorepatterns.png"
+      alt="EF Core design patterns illustration"
+      style={{ width: '100%', borderRadius: '12px', margin: '1.5rem 0' }}
+    />
 
     <h2>Which design patterns does EF Core implement?</h2>
     <div className={styles.tableWrapper}>
@@ -25,7 +31,6 @@ const EfCoreDesignPatterns = () => (
           <tr><td>Unit of Work</td><td><code>DbContext</code> + <code>SaveChanges()</code></td></tr>
           <tr><td>Repository</td><td><code>DbSet&lt;T&gt;</code></td></tr>
           <tr><td>Identity Map</td><td>Change tracker (one instance per key per context)</td></tr>
-          <tr><td>Proxy (Virtual Proxy)</td><td>Lazy loading proxies via Castle.Core</td></tr>
           <tr><td>Strategy</td><td>Execution strategies, database providers</td></tr>
           <tr><td>Builder</td><td><code>ModelBuilder</code>, <code>EntityTypeBuilder</code>, <code>DbContextOptionsBuilder</code></td></tr>
           <tr><td>Factory</td><td><code>IDbContextFactory&lt;T&gt;</code></td></tr>
@@ -72,7 +77,7 @@ context.Orders.Remove(order);`}</pre>
       This is the source of the long-running debate: <strong>should you add another Repository layer on top of EF Core?</strong>
     </p>
     <ul>
-      <li><strong>Arguments for:</strong> hides EF Core from the domain layer, makes unit testing easier (mock the repository, not DbContext), enforces a consistent query API.</li>
+      <li><strong>Arguments for:</strong> hides EF Core from the domain layer, makes unit testing easier (mock the repository, not DbContext), enforces a consistent query API. In DDD specifically, the Repository interface lives in the domain layer while the EF Core implementation lives in infrastructure - this keeps the domain free of any infrastructure dependency. DDD also restricts repositories to Aggregate Roots only, which prevents you from accidentally querying child entities directly and bypassing aggregate boundaries. Repository method names can express domain language (<code>GetPendingOrdersForCustomer</code>) instead of leaking LINQ expressions into the domain.</li>
       <li><strong>Arguments against:</strong> you are wrapping a repository with another repository. You lose <code>IQueryable</code> composability, you have to replicate every method you need, and mocking DbContext is already straightforward with <code>UseInMemoryDatabase</code>.</li>
     </ul>
     <p>
@@ -93,28 +98,6 @@ Console.WriteLine(ReferenceEquals(order1, order2));  // True - same instance`}</
     <div className={styles.callout}>
       <strong>Common surprise:</strong> you modify an entity in memory, then query it again with <code>FirstOrDefaultAsync</code>, expecting fresh data from the database. You get the modified in-memory version instead, because the change tracker already holds that entity. This is the Identity Map at work.
     </div>
-
-    <h2>Proxy - how lazy loading works under the hood</h2>
-    <p>
-      EF Core's lazy loading uses the Virtual Proxy pattern. When you enable lazy loading proxies (via <code>Microsoft.EntityFrameworkCore.Proxies</code>), EF Core does not create your entity directly. It generates a derived proxy class at runtime - using Castle.Core - that wraps each <code>virtual</code> navigation property. When you access the property for the first time, the proxy intercepts the call and loads the related data.
-    </p>
-    <pre className={styles.code}>{`// Navigation properties must be virtual for proxy generation
-public class Order
-{
-    public int Id { get; set; }
-    public virtual Customer Customer { get; set; }           // proxy wraps this
-    public virtual ICollection<OrderItem> Items { get; set; } // and this
-}
-
-// Setup
-options.UseLazyLoadingProxies().UseSqlServer(connectionString);
-
-// Usage - Customer is loaded on first access, transparently
-var order = await context.Orders.FindAsync(1);
-var name = order.Customer.Name;  // triggers SELECT on Customers here`}</pre>
-    <p>
-      The proxy intercepts the property getter, checks whether the data is loaded, and fires a query if not. You never see the proxy class directly - it looks like your entity.
-    </p>
 
     <h2>Strategy - providers and execution strategies</h2>
     <p>
@@ -306,10 +289,6 @@ modelBuilder.Entity<Order>().OwnsOne(o => o.ShippingAddress, addr =>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>What is the difference between OwnsOne and HasOne in EF Core?</strong>
         <p className={styles.faqA}>OwnsOne maps a Value Object - the owned type has no identity of its own and its columns live in the owner's table. HasOne maps a relationship between two independent entities that each have their own primary key and table. Use OwnsOne for things like Address or Money that only exist as part of a parent entity.</p>
-      </div>
-      <div className={styles.faqItem}>
-        <strong className={styles.faqQ}>Why must navigation properties be virtual for lazy loading proxies?</strong>
-        <p className={styles.faqA}>EF Core generates a proxy class that inherits from your entity and overrides the navigation property getters to intercept access. Overriding requires the properties to be declared virtual. If they are not virtual, the proxy cannot intercept them and lazy loading silently does nothing.</p>
       </div>
     </div>
 

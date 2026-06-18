@@ -17,19 +17,18 @@ export interface BlogPost {
 export const posts: BlogPost[] = [
   {
     slug: 'ef-core-design-patterns',
-    title: 'EF Core Under the Hood: 12 Design Patterns You Use Every Day',
-    description: 'EF Core implements Unit of Work, Repository, Identity Map, Proxy, Strategy, Builder, Factory, Object Pool, Interceptor, Template Method, Query Object, and Value Object. Understanding these patterns explains most of EF Core\'s behaviour - and most of its surprises.',
+    title: 'EF Core Under the Hood: 11 Design Patterns You Use Every Day',
+    description: 'EF Core implements Unit of Work, Repository, Identity Map, Strategy, Builder, Factory, Object Pool, Interceptor, Template Method, Query Object, and Value Object. Understanding these patterns explains most of EF Core\'s behaviour - and most of its surprises.',
     date: '2026-06-18',
     readTime: 10,
     tags: ['.NET', 'EF Core', 'Architecture', 'Design Patterns', 'Backend'],
-    image: '/images/profile-photo-zoomed.jpg',
+    image: '/images/efcorepatterns.png',
     faq: [
       { q: 'Is DbContext a Unit of Work or a Repository?', a: 'Both. DbContext is the Unit of Work - it tracks changes and commits them in one transaction via SaveChanges(). DbSet<T> is the Repository - it provides the collection-like interface for querying and persisting a specific entity type.' },
       { q: 'Should I add a Repository layer on top of EF Core?', a: 'For most applications, no. DbSet<T> is already a repository, and wrapping it adds boilerplate without much benefit. A custom Repository layer makes sense when you need to fully hide EF Core from your domain or enforce a strict set of allowed queries.' },
       { q: 'What is the difference between AddDbContext and AddDbContextPool?', a: 'AddDbContext creates a new DbContext instance per scope. AddDbContextPool maintains a pool of pre-created instances and resets them between uses, reducing allocation pressure. Use it when your context has no custom constructor state.' },
       { q: 'When should I use IDbContextFactory instead of injecting DbContext directly?', a: 'Use IDbContextFactory when the standard scoped lifetime does not fit - Blazor Server components, background services, or any scenario where you need multiple short-lived contexts within the same scope.' },
       { q: 'What is the difference between OwnsOne and HasOne in EF Core?', a: 'OwnsOne maps a Value Object - the owned type has no identity of its own and its columns live in the owner\'s table. HasOne maps a relationship between two independent entities that each have their own primary key and table.' },
-      { q: 'Why must navigation properties be virtual for lazy loading proxies?', a: 'EF Core generates a proxy class that inherits from your entity and overrides the navigation property getters to intercept access. Overriding requires the properties to be declared virtual. If they are not virtual, lazy loading silently does nothing.' },
     ],
   },
   {
