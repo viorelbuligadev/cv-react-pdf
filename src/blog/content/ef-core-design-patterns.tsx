@@ -9,7 +9,7 @@ const EfCoreDesignPatterns = () => (
     </div>
 
     <p className={styles.lead}>
-      The first time I read the Gang of Four I did not think much about ORMs. Years later, working with EF Core daily, I started recognising the same patterns everywhere - in how DbContext tracks changes, in how ModelBuilder configures entities, in how lazy loading proxies work. EF Core is not just a data access library. It is a textbook of enterprise patterns in working code.
+      Working with EF Core daily, I started recognising the same patterns everywhere - in how DbContext tracks changes, in how ModelBuilder configures entities, in how lazy loading proxies work. EF Core is not just a data access library. It is a textbook of enterprise patterns in working code.
     </p>
 
     <img
