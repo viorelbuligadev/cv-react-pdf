@@ -13,6 +13,7 @@ const contentMap: Record<string, React.ComponentType> = {
   'dotnet-task-async-await': dynamic(() => import('../../src/blog/content/dotnet-task-async-await')),
   'ca2012-valuetask-correctly': dynamic(() => import('../../src/blog/content/ca2012-valuetask-correctly')),
   'impedance-mismatch-explained': dynamic(() => import('../../src/blog/content/impedance-mismatch-explained')),
+  'ef-core-design-patterns': dynamic(() => import('../../src/blog/content/ef-core-design-patterns')),
 };
 
 interface Props {
