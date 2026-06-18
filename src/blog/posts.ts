@@ -64,6 +64,7 @@ export const posts: BlogPost[] = [
       { q: 'Can asyncio speed up CPU-bound code?', a: 'No. asyncio only helps with I/O-bound work where the bottleneck is waiting for external operations. CPU-bound work blocks the event loop and delays all other tasks. For CPU-bound concurrency, use multiprocessing or concurrent.futures.ProcessPoolExecutor.' },
       { q: 'What is asyncio.gather()?', a: 'asyncio.gather() runs multiple awaitables concurrently and returns a list of their results in the same order as the inputs. If any coroutine raises an exception and return_exceptions is False (the default), the exception propagates immediately to the caller.' },
       { q: 'What is asyncio.run()?', a: 'asyncio.run() is the standard entry point for async programs, available since Python 3.7. It creates a new event loop, runs the given top-level coroutine to completion, closes the loop, and returns the result. You should call it once at the top level of your script, not inside a running event loop.' },
+      { q: 'What is asyncio.TaskGroup and how does it differ from gather()?', a: 'asyncio.TaskGroup (Python 3.11+) is an async context manager that runs tasks concurrently and cancels all remaining tasks if one raises an exception. asyncio.gather() does not cancel other tasks on failure by default. TaskGroup is the recommended approach for Python 3.11+ because it provides stronger safety guarantees.' },
     ],
   },
   {

@@ -133,6 +133,26 @@ asyncio.run(main())`}</pre>
     <p>
       By default, if any coroutine in <code>gather()</code> raises an exception, the exception propagates immediately to the caller. Set <code>return_exceptions=True</code> to collect exceptions as regular return values instead of letting them abort the whole gather.
     </p>
+    <p>
+      Python 3.11 introduced <code>asyncio.TaskGroup</code>, a safer way to run tasks concurrently. Unlike <code>gather()</code>, if one task raises an exception the group automatically cancels all remaining tasks before re-raising. It uses an async context manager:
+    </p>
+    <pre className={styles.code}>{`import asyncio
+
+async def fetch(label: str, delay: float) -> str:
+    await asyncio.sleep(delay)
+    return f"{label} done"
+
+async def main():
+    async with asyncio.TaskGroup() as tg:
+        task_a = tg.create_task(fetch("A", 0.3))
+        task_b = tg.create_task(fetch("B", 0.1))
+    # All tasks are complete (or cancelled) when the block exits
+    print(task_a.result(), task_b.result())  # A done B done
+
+asyncio.run(main())`}</pre>
+    <p>
+      For new code targeting Python 3.11 or later, prefer <code>TaskGroup</code> over <code>gather()</code>. For older Python versions, stick with <code>gather()</code>.
+    </p>
 
     <h2>What is the difference between asyncio, threading, and multiprocessing?</h2>
     <p>
@@ -239,6 +259,10 @@ asyncio.run(main())`}</pre>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>What is asyncio.run()?</strong>
         <p className={styles.faqA}>asyncio.run() is the standard entry point for async programs, available since Python 3.7. It creates a new event loop, runs the given top-level coroutine to completion, closes the loop, and returns the result. You should call it once at the top level of your script, not inside a running event loop.</p>
+      </div>
+      <div className={styles.faqItem}>
+        <strong className={styles.faqQ}>What is asyncio.TaskGroup and how does it differ from gather()?</strong>
+        <p className={styles.faqA}>asyncio.TaskGroup (Python 3.11+) is an async context manager that runs tasks concurrently and cancels all remaining tasks if one raises an exception. asyncio.gather() does not cancel other tasks on failure by default. TaskGroup is the recommended approach for Python 3.11+ because it provides stronger safety guarantees.</p>
       </div>
     </div>
 
