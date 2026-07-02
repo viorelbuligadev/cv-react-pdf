@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'python-multiple-inheritance',
+    title: 'Python Inheritance Explained: Simple, Chain, Hierarchical and Multiple',
+    description: 'Python supports four types of inheritance. Learn how simple, chain, hierarchical, and multiple inheritance work with practical examples, how the MRO resolves method conflicts, and when to prefer composition over inheritance.',
+    date: '2026-07-02',
+    readTime: 7,
+    tags: ['Python', 'OOP', 'Backend'],
+    image: '/images/pythoninheritance.png',
+    faq: [
+      { q: 'What are the four types of inheritance in Python?', a: 'Simple (one parent, one subclass), chain or multilevel (a subclass becomes a parent itself), hierarchical (multiple subclasses from the same parent), and multiple (one class inherits from more than one parent).' },
+      { q: 'What is the MRO in Python?', a: 'The Method Resolution Order is the search path Python follows when looking up a method in a class hierarchy. It is computed automatically using the C3 linearization algorithm. You can inspect it with ClassName.__mro__.' },
+      { q: 'Does the order of parent classes in multiple inheritance matter?', a: 'Yes. The order in the class definition determines the MRO. Python searches parent classes left to right. If two parents define the same method, the one listed first wins.' },
+      { q: 'Why should I use super() instead of calling the parent class directly?', a: 'In multiple inheritance, super() calls the next class in the MRO, not necessarily the direct parent. This makes cooperative inheritance work - all classes in the chain get called in the right order. Calling a parent directly by name can silently skip parts of the hierarchy.' },
+      { q: 'When should I use multiple inheritance?', a: 'The safest use case is the Mixin pattern - small classes that add one specific capability without defining a primary identity. Avoid it when parent classes share state, have conflicting methods, or when the combination has no clear conceptual meaning.' },
+      { q: 'What is the difference between chain inheritance and hierarchical inheritance?', a: 'Chain (multilevel) inheritance goes vertically - A inherits from B, and B inherits from C. Hierarchical inheritance goes horizontally - multiple classes all inherit from the same single parent, branching in different directions.' },
+    ],
+  },
+  {
     slug: 'ef-core-design-patterns',
     title: 'EF Core Under the Hood: 11 Design Patterns You Use Every Day',
     description: 'EF Core implements Unit of Work, Repository, Identity Map, Strategy, Builder, Factory, Object Pool, Interceptor, Template Method, Query Object, and Value Object. Understanding these patterns explains most of EF Core\'s behaviour - and most of its surprises.',
