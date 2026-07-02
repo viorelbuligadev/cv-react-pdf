@@ -105,7 +105,7 @@ class Employee(Person):
 
     def introduce(self):
         super().introduce()
-        print(f"I work as a {self.title}.")
+        print(f"I work as an {self.title}.")
 
 
 class Manager(Employee):
@@ -122,7 +122,7 @@ m = Manager("Sarah", "Engineering Manager", 8)
 m.introduce()`}</pre>
     <p>Output:</p>
     <pre className={styles.code}>{`Hi, I'm Sarah.
-I work as a Engineering Manager.
+I work as an Engineering Manager.
 I manage a team of 8 people.`}</pre>
     <p>
       Each level adds depth while keeping everything from the levels above. <code>super()</code> ensures the chain is called in order, so no information is lost.
@@ -194,8 +194,8 @@ for p in payments:
     </p>
     <pre className={styles.code}>{`class Trackable:
     def mark_updated(self):
-        from datetime import datetime
-        self.updated_at = datetime.utcnow().isoformat()
+        from datetime import datetime, timezone
+        self.updated_at = datetime.now(timezone.utc).isoformat()
         print(f"Updated at {self.updated_at}")
 
 
@@ -218,7 +218,7 @@ r.generate()
 r.export_csv()`}</pre>
     <p>Output:</p>
     <pre className={styles.code}>{`Generating report: Monthly Sales
-Updated at 2026-07-02T10:30:00
+Updated at 2026-07-02T10:30:00.123456+00:00
 Exporting Report as CSV...`}</pre>
     <p>
       <code>Report</code> gets the full behaviour of both parent classes. The order of parents in the class definition (<code>Trackable</code> before <code>Exportable</code>) matters - it determines the search order when methods have the same name.
