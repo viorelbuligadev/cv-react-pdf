@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'python-multiple-inheritance',
+    title: 'Multiple Inheritance in Python: MRO, super(), and the Mixin Pattern',
+    description: 'Python supports multiple inheritance and resolves method conflicts with the C3 linearization MRO algorithm. Learn how the diamond problem is solved, how super() cooperates across the chain, and when Mixins are the right tool.',
+    date: '2026-07-02',
+    readTime: 7,
+    tags: ['Python', 'OOP', 'Backend'],
+    image: '/images/profile-photo-zoomed.jpg',
+    faq: [
+      { q: 'What is the C3 linearization algorithm?', a: 'C3 linearization is the algorithm Python uses to compute the MRO. It guarantees that a class always appears before its parents in the MRO, and that the order of parents is preserved as declared. If no consistent order can be computed, Python raises a TypeError at class definition time.' },
+      { q: 'What is the difference between a Mixin and a base class?', a: 'A base class defines the core identity of a subclass - the "is-a" relationship. A Mixin adds a specific capability without defining identity. Mixins are not meant to be instantiated alone, they are usually small, and they do not define the primary type of the class that uses them.' },
+      { q: 'Does the order of parent classes in the definition matter?', a: 'Yes. The order determines the MRO. Python searches parent classes left to right when looking up methods. If two parents define the same method, the one listed first wins.' },
+      { q: 'Can Python raise an error from multiple inheritance?', a: 'Yes. If Python cannot compute a consistent MRO, it raises a TypeError: "Cannot create a consistent method resolution order." This happens at class definition time, not at runtime.' },
+      { q: 'How is multiple inheritance different in Python vs other languages?', a: 'Java and C# do not support multiple inheritance for classes - they use interfaces instead. C++ supports it but without a standard resolution algorithm. Python\'s C3 MRO gives a predictable, deterministic resolution order.' },
+      { q: 'Is multiple inheritance used in real Python frameworks?', a: 'Yes. Django\'s class-based views use Mixins for access control (LoginRequiredMixin, PermissionRequiredMixin). Python\'s standard library uses them too - socketserver.ThreadingMixIn and socketserver.ForkingMixIn add concurrency behaviour to server classes.' },
+    ],
+  },
+  {
     slug: 'ef-core-design-patterns',
     title: 'EF Core Under the Hood: 11 Design Patterns You Use Every Day',
     description: 'EF Core implements Unit of Work, Repository, Identity Map, Strategy, Builder, Factory, Object Pool, Interceptor, Template Method, Query Object, and Value Object. Understanding these patterns explains most of EF Core\'s behaviour - and most of its surprises.',
