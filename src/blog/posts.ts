@@ -17,19 +17,19 @@ export interface BlogPost {
 export const posts: BlogPost[] = [
   {
     slug: 'python-multiple-inheritance',
-    title: 'Multiple Inheritance in Python: MRO, super(), and the Mixin Pattern',
-    description: 'Python supports multiple inheritance and resolves method conflicts with the C3 linearization MRO algorithm. Learn how the diamond problem is solved, how super() cooperates across the chain, and when Mixins are the right tool.',
+    title: 'Python Inheritance Explained: Simple, Chain, Hierarchical and Multiple',
+    description: 'Python supports four types of inheritance. Learn how simple, chain, hierarchical, and multiple inheritance work with practical examples, how the MRO resolves method conflicts, and when to prefer composition over inheritance.',
     date: '2026-07-02',
     readTime: 7,
     tags: ['Python', 'OOP', 'Backend'],
     image: '/images/profile-photo-zoomed.jpg',
     faq: [
-      { q: 'What is the C3 linearization algorithm?', a: 'C3 linearization is the algorithm Python uses to compute the MRO. It guarantees that a class always appears before its parents in the MRO, and that the order of parents is preserved as declared. If no consistent order can be computed, Python raises a TypeError at class definition time.' },
-      { q: 'What is the difference between a Mixin and a base class?', a: 'A base class defines the core identity of a subclass - the "is-a" relationship. A Mixin adds a specific capability without defining identity. Mixins are not meant to be instantiated alone, they are usually small, and they do not define the primary type of the class that uses them.' },
-      { q: 'Does the order of parent classes in the definition matter?', a: 'Yes. The order determines the MRO. Python searches parent classes left to right when looking up methods. If two parents define the same method, the one listed first wins.' },
-      { q: 'Can Python raise an error from multiple inheritance?', a: 'Yes. If Python cannot compute a consistent MRO, it raises a TypeError: "Cannot create a consistent method resolution order." This happens at class definition time, not at runtime.' },
-      { q: 'How is multiple inheritance different in Python vs other languages?', a: 'Java and C# do not support multiple inheritance for classes - they use interfaces instead. C++ supports it but without a standard resolution algorithm. Python\'s C3 MRO gives a predictable, deterministic resolution order.' },
-      { q: 'Is multiple inheritance used in real Python frameworks?', a: 'Yes. Django\'s class-based views use Mixins for access control (LoginRequiredMixin, PermissionRequiredMixin). Python\'s standard library uses them too - socketserver.ThreadingMixIn and socketserver.ForkingMixIn add concurrency behaviour to server classes.' },
+      { q: 'What are the four types of inheritance in Python?', a: 'Simple (one parent, one subclass), chain or multilevel (a subclass becomes a parent itself), hierarchical (multiple subclasses from the same parent), and multiple (one class inherits from more than one parent).' },
+      { q: 'What is the MRO in Python?', a: 'The Method Resolution Order is the search path Python follows when looking up a method in a class hierarchy. It is computed automatically using the C3 linearization algorithm. You can inspect it with ClassName.__mro__.' },
+      { q: 'Does the order of parent classes in multiple inheritance matter?', a: 'Yes. The order in the class definition determines the MRO. Python searches parent classes left to right. If two parents define the same method, the one listed first wins.' },
+      { q: 'Why should I use super() instead of calling the parent class directly?', a: 'In multiple inheritance, super() calls the next class in the MRO, not necessarily the direct parent. This makes cooperative inheritance work - all classes in the chain get called in the right order. Calling a parent directly by name can silently skip parts of the hierarchy.' },
+      { q: 'When should I use multiple inheritance?', a: 'The safest use case is the Mixin pattern - small classes that add one specific capability without defining a primary identity. Avoid it when parent classes share state, have conflicting methods, or when the combination has no clear conceptual meaning.' },
+      { q: 'What is the difference between chain inheritance and hierarchical inheritance?', a: 'Chain (multilevel) inheritance goes vertically - A inherits from B, and B inherits from C. Hierarchical inheritance goes horizontally - multiple classes all inherit from the same single parent, branching in different directions.' },
     ],
   },
   {
