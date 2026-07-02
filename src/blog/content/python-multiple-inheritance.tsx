@@ -12,6 +12,12 @@ const PythonMultipleInheritance = () => (
       When you start working with classes, inheritance feels like a simple concept - one class extends another and that is it. But as systems grow, the relationships between classes naturally become richer. You end up with deeper hierarchies, branching structures, and classes that combine behaviour from multiple sources. Python handles all of these cases, and understanding each form of inheritance helps you build code that is flexible, clean, and easy to extend.
     </p>
 
+    <img
+      src="/images/pythoninheritance.png"
+      alt="Python inheritance types illustration"
+      style={{ width: '100%', borderRadius: '12px', margin: '1.5rem 0' }}
+    />
+
     <h2>What is simple inheritance?</h2>
     <p>
       Simple inheritance is the most basic form - one base class, one subclass. The subclass gets everything the parent has and can add or override whatever it needs.
@@ -55,7 +61,7 @@ n.send()`}</pre>
         self.price = price
 
     def display(self):
-        print(f"{self.name} - ${self.price}")
+        print(f"{self.name} - \${self.price}")
 
 
 class DigitalProduct(Product):
@@ -140,7 +146,7 @@ I manage a team of 8 people.`}</pre>
         self.amount = amount
 
     def display(self):
-        print(f"Payment of ${self.amount}")
+        print(f"Payment of \${self.amount}")
 
 
 class CardPayment(Payment):

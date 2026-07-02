@@ -22,7 +22,7 @@ export const posts: BlogPost[] = [
     date: '2026-07-02',
     readTime: 7,
     tags: ['Python', 'OOP', 'Backend'],
-    image: '/images/profile-photo-zoomed.jpg',
+    image: '/images/pythoninheritance.png',
     faq: [
       { q: 'What are the four types of inheritance in Python?', a: 'Simple (one parent, one subclass), chain or multilevel (a subclass becomes a parent itself), hierarchical (multiple subclasses from the same parent), and multiple (one class inherits from more than one parent).' },
       { q: 'What is the MRO in Python?', a: 'The Method Resolution Order is the search path Python follows when looking up a method in a class hierarchy. It is computed automatically using the C3 linearization algorithm. You can inspect it with ClassName.__mro__.' },
