@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'dotnet-per-operation-timeouts',
+    title: 'Per-Operation Timeouts in .NET: Why HttpClient.Timeout Is Not Enough',
+    description: 'HttpClient.Timeout is infrastructure-level - it applies the same budget to every call. Learn how to use CancellationTokenSource and CreateLinkedTokenSource to set per-operation timeouts that compose with the caller token and tell you exactly who cancelled.',
+    date: '2026-07-03',
+    readTime: 7,
+    tags: ['.NET', 'C#', 'Backend', 'Resilience'],
+    image: '/images/profile-photo-zoomed.jpg',
+    faq: [
+      { q: 'Why set HttpClient.Timeout to Timeout.InfiniteTimeSpan?', a: 'Because the timeout belongs at the operation level, not the infrastructure level. Setting HttpClient.Timeout applies the same budget to every call. Moving the timeout to a per-call CancellationTokenSource lets each operation define its own budget based on what the business logic requires.' },
+      { q: 'What does CreateLinkedTokenSource actually do?', a: 'It creates a new CancellationTokenSource that is cancelled when any of the source tokens cancel - a logical OR. The resulting token stops the operation at whichever boundary fires first: the caller disconnecting, the time budget expiring, or any other token in the chain.' },
+      { q: 'How do I know if the timeout or the caller cancelled?', a: 'Check timeoutCts.IsCancellationRequested and the caller token separately after catching OperationCanceledException. If timeoutCts fired but the caller token did not, it was your budget. If the caller token fired, the client closed the connection and no response is needed.' },
+      { q: 'What happens if I don\'t dispose the linked CancellationTokenSource?', a: 'CreateLinkedTokenSource registers callbacks on the parent tokens. Without disposal those callbacks are never removed, keeping the linked CTS alive in memory. On a high-throughput service this becomes a memory leak on every request.' },
+      { q: 'Should I use raw CancellationTokenSource or Polly?', a: 'For simple timeout-only scenarios, raw CancellationTokenSource is fine. When you need retry, circuit breaking, and timeout composing together, Polly is the better choice. Understanding the raw mechanism helps you configure and debug the abstraction correctly.' },
+      { q: 'Where does the caller\'s CancellationToken come from in ASP.NET Core?', a: 'It is HttpContext.RequestAborted, injected automatically when you declare a CancellationToken parameter in a minimal API handler or controller action. It fires when the client closes the connection or the request times out at the server level.' },
+    ],
+  },
+  {
     slug: 'python-multiple-inheritance',
     title: 'Python Inheritance Explained: Simple, Chain, Hierarchical and Multiple',
     description: 'Python supports four types of inheritance. Learn how simple, chain, hierarchical, and multiple inheritance work with practical examples, how the MRO resolves method conflicts, and when to prefer composition over inheritance.',
