@@ -15,6 +15,7 @@ const contentMap: Record<string, React.ComponentType> = {
   'impedance-mismatch-explained': dynamic(() => import('../../src/blog/content/impedance-mismatch-explained')),
   'ef-core-design-patterns': dynamic(() => import('../../src/blog/content/ef-core-design-patterns')),
   'python-multiple-inheritance': dynamic(() => import('../../src/blog/content/python-multiple-inheritance')),
+  'dotnet-per-operation-timeouts': dynamic(() => import('../../src/blog/content/dotnet-per-operation-timeouts')),
 };
 
 interface Props {
