@@ -9,8 +9,14 @@ const DotnetPerOperationTimeouts = () => (
     </div>
 
     <p className={styles.lead}>
-      Your API's latency is only as good as your slowest dependency - unless you draw a timed boundary around it. I keep coming back to the same pattern in .NET services that call external gateways: move the timeout from the HTTP client to the operation, combine it with the caller's token, and always know who cancelled. Here is how it works and why it matters.
+      Your API's latency is only as good as your slowest dependency - unless you draw a timed boundary around it. I keep coming back to the same pattern in .NET services that call external APIs: move the timeout from the HTTP client to the operation, combine it with the caller's token, and always know who cancelled. Here is how it works and why it matters.
     </p>
+
+    <img
+      src="/images/timeoutboundary.png"
+      alt="Per-operation timeout boundary illustration"
+      style={{ width: '100%', borderRadius: '12px', margin: '1.5rem 0' }}
+    />
 
     <h2>What is wrong with HttpClient.Timeout?</h2>
     <p>
@@ -129,37 +135,6 @@ await _gateway.GetQuoteAsync(request, linkedCts.Token);`}</pre>
     </p>
     <p>
       One slow external gateway can take down your entire service - not because of high traffic, but because of missing boundaries. Fail fast beats waiting forever.
-    </p>
-    <pre className={styles.code}>{`// Running the demo locally shows the three scenarios:
-
-// 1. Fast gateway (500ms, budget 2000ms) -> completes normally
-//    OK        498 ms  ->  ShippingQuote { Carrier = "FanCourier", Price = 24.99 RON }
-
-// 2. Slow gateway (5000ms, budget 2000ms) -> timeout boundary fires
-//    TIMEOUT  2001 ms  ->  boundary fired, would return 504 / fallback
-
-// 3. Slow gateway (5000ms), caller cancels after 800ms -> caller token fires first
-//    CALLER    801 ms  ->  client abandoned the request, no response needed`}</pre>
-
-    <h2>How does this relate to Polly?</h2>
-    <p>
-      This is exactly the same idea that Polly calls a <strong>timeout strategy</strong>. Polly wraps the raw <code>CancellationTokenSource</code> mechanism in a configurable policy that also handles retry boundaries, bulkheads, and circuit breakers composing together.
-    </p>
-    <pre className={styles.code}>{`// Polly equivalent - same concept, higher-level abstraction
-var pipeline = new ResiliencePipelineBuilder()
-    .AddTimeout(TimeSpan.FromSeconds(3))   // per-operation timeout
-    .AddRetry(new RetryStrategyOptions
-    {
-        MaxRetryAttempts = 2,
-        Delay = TimeSpan.FromMilliseconds(200),
-    })
-    .Build();
-
-await pipeline.ExecuteAsync(
-    async ct => await _gateway.GetQuoteAsync(request, ct),
-    callerToken);`}</pre>
-    <p>
-      Understanding the raw mechanism makes you better at configuring the abstraction. When Polly's timeout fires an <code>OperationCanceledException</code> and you need to decide what to return, you already know exactly what happened under the hood.
     </p>
 
     <h2>Frequently asked questions</h2>

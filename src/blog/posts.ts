@@ -22,7 +22,7 @@ export const posts: BlogPost[] = [
     date: '2026-07-03',
     readTime: 7,
     tags: ['.NET', 'C#', 'Backend', 'Resilience'],
-    image: '/images/profile-photo-zoomed.jpg',
+    image: '/images/timeoutboundary.png',
     faq: [
       { q: 'Why set HttpClient.Timeout to Timeout.InfiniteTimeSpan?', a: 'Because the timeout belongs at the operation level, not the infrastructure level. Setting HttpClient.Timeout applies the same budget to every call. Moving the timeout to a per-call CancellationTokenSource lets each operation define its own budget based on what the business logic requires.' },
       { q: 'What does CreateLinkedTokenSource actually do?', a: 'It creates a new CancellationTokenSource that is cancelled when any of the source tokens cancel - a logical OR. The resulting token stops the operation at whichever boundary fires first: the caller disconnecting, the time budget expiring, or any other token in the chain.' },
