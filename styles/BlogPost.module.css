@@ -9,6 +9,7 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 3rem 1.5rem 5rem;
+  overflow-x: hidden;
 }
 
 .article {
