@@ -25,12 +25,14 @@ const DotnetPerOperationTimeouts = () => (
     <p>
       Consider a service that uses the same <code>HttpClient</code> for two operations: getting a shipping quote and exporting a report. A shipping quote should fail fast - 3 seconds is generous. A report export might legitimately take 2 minutes. Setting one <code>HttpClient.Timeout</code> means you either kill the export too early or wait too long on a hung quote endpoint.
     </p>
-    <pre className={styles.code}>{`// This applies the same timeout to every call - too blunt
-services.AddHttpClient<IGatewayClient, GatewayClient>(client =>
-{
-    client.BaseAddress = new Uri(gatewayUrl);
-    client.Timeout = TimeSpan.FromSeconds(3);  // kills the report export
-});`}</pre>
+    <pre className={styles.code}>{`// Same timeout for every call - too blunt
+services.AddHttpClient<IGatewayClient, GatewayClient>(
+    client =>
+    {
+        client.BaseAddress = new Uri(gatewayUrl);
+        // kills the report export
+        client.Timeout = TimeSpan.FromSeconds(3);
+    });`}</pre>
     <p>
       The fix: set <code>HttpClient.Timeout</code> to <code>Timeout.InfiniteTimeSpan</code> and move the timeout to the operation level, where it belongs.
     </p>
@@ -40,25 +42,30 @@ services.AddHttpClient<IGatewayClient, GatewayClient>(client =>
       Each call gets its own <code>CancellationTokenSource</code> with a time budget. You then combine it with the caller's cancellation token - typically <code>HttpContext.RequestAborted</code> in ASP.NET Core - using <code>CreateLinkedTokenSource</code>. The resulting token is passed down to the gateway call.
     </p>
     <pre className={styles.code}>{`// HttpClient has no deadline of its own
-services.AddHttpClient<IGatewayClient, GatewayClient>(client =>
-{
-    client.BaseAddress = new Uri(options.BaseUrl);
-    client.Timeout = Timeout.InfiniteTimeSpan;  // boundaries live at the call site
-});
+services.AddHttpClient<IGatewayClient, GatewayClient>(
+    client =>
+    {
+        client.BaseAddress = new Uri(options.BaseUrl);
+        // boundaries live at the call site
+        client.Timeout = Timeout.InfiniteTimeSpan;
+    });
 
 // In your service / use case handler
 public async Task<ShippingQuote> GetQuoteAsync(
     QuoteRequest request,
-    CancellationToken callerToken)   // HttpContext.RequestAborted in ASP.NET Core
+    CancellationToken callerToken) // HttpContext.RequestAborted
 {
     using var timeoutCts = new CancellationTokenSource(
-        TimeSpan.FromMilliseconds(_options.TimeoutMilliseconds));
+        TimeSpan.FromMilliseconds(
+            _options.TimeoutMilliseconds));
 
-    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-        callerToken,
-        timeoutCts.Token);
+    using var linkedCts =
+        CancellationTokenSource.CreateLinkedTokenSource(
+            callerToken,
+            timeoutCts.Token);
 
-    return await _gateway.GetQuoteAsync(request, linkedCts.Token);
+    return await _gateway.GetQuoteAsync(
+        request, linkedCts.Token);
 }`}</pre>
     <p>
       Each operation now carries its own budget. The shipping quote handler gets 3 seconds; the report export handler gets 2 minutes. Same HTTP client, different boundaries - exactly what the business logic requires.
@@ -68,13 +75,16 @@ public async Task<ShippingQuote> GetQuoteAsync(
     <p>
       <code>CancellationTokenSource.CreateLinkedTokenSource</code> creates a new token that is cancelled when <em>any</em> of the source tokens cancel. It is a logical OR.
     </p>
-    <pre className={styles.code}>{`using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-    callerToken,     // fires if the HTTP client disconnects
-    timeoutCts.Token // fires after 3 seconds
-);
+    <pre className={styles.code}>{`using var timeoutCts = new CancellationTokenSource(
+    TimeSpan.FromSeconds(3));
 
-// linkedCts.Token is cancelled when EITHER fires - whichever comes first
+using var linkedCts =
+    CancellationTokenSource.CreateLinkedTokenSource(
+        callerToken,      // fires if client disconnects
+        timeoutCts.Token  // fires after 3 seconds
+    );
+
+// cancelled when EITHER fires - whichever comes first
 await _gateway.GetQuoteAsync(request, linkedCts.Token);`}</pre>
     <p>
       This means the operation stops at the tightest active boundary. If the caller disconnects at 1 second and the timeout is 3 seconds, the operation stops at 1 second. If the caller is still connected but the gateway hangs, the operation stops at 3 seconds.
@@ -93,19 +103,23 @@ await _gateway.GetQuoteAsync(request, linkedCts.Token);`}</pre>
     </ul>
     <pre className={styles.code}>{`try
 {
-    var quote = await _gateway.GetQuoteAsync(request, linkedCts.Token);
+    var quote = await _gateway.GetQuoteAsync(
+        request, linkedCts.Token);
     return Results.Ok(quote);
 }
 catch (OperationCanceledException)
 {
-    if (timeoutCts.IsCancellationRequested && !callerToken.IsCancellationRequested)
+    if (timeoutCts.IsCancellationRequested
+        && !callerToken.IsCancellationRequested)
     {
-        // Our budget expired - the gateway was too slow
-        _logger.LogWarning("Gateway timeout after {Ms}ms", _options.TimeoutMilliseconds);
+        // Our budget expired - gateway was too slow
+        _logger.LogWarning(
+            "Gateway timeout after {Ms}ms",
+            _options.TimeoutMilliseconds);
         return Results.StatusCode(504);
     }
 
-    // Caller closed the connection - no point sending a response
+    // Caller closed connection - no response needed
     _logger.LogInformation("Request cancelled by caller.");
     return Results.Empty;
 }`}</pre>
@@ -117,13 +131,18 @@ catch (OperationCanceledException)
     <p>
       <code>CreateLinkedTokenSource</code> registers callbacks on the parent tokens. Those callbacks keep the linked <code>CTS</code> alive in memory. If you do not dispose it, the callbacks are never removed - and on a service handling thousands of requests against a long-lived <code>HttpContext</code> token, that is a memory leak on every request.
     </p>
-    <pre className={styles.code}>{`// WRONG - linked CTS never disposed, callbacks accumulate
-var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(callerToken, timeoutCts.Token);
+    <pre className={styles.code}>{`// WRONG - callbacks accumulate, memory leak
+var linkedCts =
+    CancellationTokenSource.CreateLinkedTokenSource(
+        callerToken, timeoutCts.Token);
 await _gateway.GetQuoteAsync(request, linkedCts.Token);
 
-// CORRECT - using statement disposes both CTS instances after the call
-using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(callerToken, timeoutCts.Token);
+// CORRECT - using disposes both after the call
+using var timeoutCts = new CancellationTokenSource(
+    TimeSpan.FromSeconds(3));
+using var linkedCts =
+    CancellationTokenSource.CreateLinkedTokenSource(
+        callerToken, timeoutCts.Token);
 await _gateway.GetQuoteAsync(request, linkedCts.Token);`}</pre>
     <div className={styles.callout}>
       <strong>Rule:</strong> every <code>CancellationTokenSource</code> you create must be disposed. The <code>using</code> keyword is the safest way to guarantee this - it disposes even when an exception is thrown.
