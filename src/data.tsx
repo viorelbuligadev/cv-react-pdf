@@ -62,7 +62,7 @@ export const projectsByName = {
       <><Text isBold>Increased trade processing throughput by 10x</Text> by moving complex trade decomposition out of Allegro into a cloud-native, event-driven pipeline built on Azure Functions, Azure App Services, Service Bus, and CosmosDB.</>,
       <><Text isBold>Reduced production issue investigation time by 80%</Text> by adding correlation IDs across the request pipeline, enabling engineers to trace a single transaction end-to-end through all microservices involved.</>,
     ],
-    skills: ['C#', '.NET 8', 'ASP.NET Core 8', 'Azure Functions', 'Azure CosmosDB', 'Blob Storage', 'Service Bus', 'Kafka', 'Angular', 'Event-Driven Architecture', 'Azure Logic Apps', 'Kafka', 'DDD', 'Azure DevOps'],
+    skills: ['C#', '.NET 8', 'ASP.NET Core 8', 'Azure Functions', 'CosmosDB', 'Blob Storage', 'Service Bus', 'Kafka', 'Angular', 'Python', 'Azure Logic Apps', 'Kafka', 'DDD', 'Azure DevOps'],
   },
   costko: {
     projectName: 'COST MANAGEMENT SYSTEM',

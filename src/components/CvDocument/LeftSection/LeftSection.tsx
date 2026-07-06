@@ -83,6 +83,7 @@ const LeftSection = () => {
         <SkillItem years={3} name="Docker" />
         <SkillItem years={3} name="Angular" />
         <SkillItem years={2} name="CosmosDB" />
+        <SkillItem years={2} name="Python" />
         <SkillItem years={2} name="IaC" />
         <SkillItem years={1} name="AWS" />
       </LeftSectionPanel>
