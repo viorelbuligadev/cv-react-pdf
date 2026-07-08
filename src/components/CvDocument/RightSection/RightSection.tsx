@@ -4,15 +4,7 @@ import Text from "../elements/Text";
 import Hr from "./Hr";
 import ProjectCard, {ProjectCardProps} from "./ProjectCard";
 import Title from "../elements/Title";
-
-const titleItems = [
-  'Senior AI Engineer',
-  '.NET Full-Stack',
-  'Contractor',
-  'Freelancer',
-];
-
-// "JavaScript, NodeJS, PostgreSQL, ReactJS, Redux, Docker, AWS, Jenkins CI/CD, GitHub, Jira".split(', ').map(i => `'${i}'`).join(', ')
+import {fullName, titleItems} from "../../../data";
 
 export interface RightSectionProps {
   projects: ProjectCardProps[];
@@ -23,7 +15,7 @@ const RightSection: React.FC<RightSectionProps> = ({ projects, workExperienceTit
   return (
     <View style={[styles.container]}>
       <View style={styles.header}>
-        <Text style={styles.name}>Viorel Buliga</Text>
+        <Text style={styles.name}>{fullName}</Text>
         <View style={styles.titleContainer}>
           {titleItems.map((titleItem, index) => {
             return (
