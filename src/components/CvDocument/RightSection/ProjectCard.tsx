@@ -1,6 +1,7 @@
-import React, {ReactNode} from "react";
+import React from "react";
 import {StyleSheet, View} from "@react-pdf/renderer";
 import Text from "../elements/Text";
+import {Achievement} from "../../../data";
 
 export interface ProjectCardProps {
   projectName: string;
@@ -8,8 +9,8 @@ export interface ProjectCardProps {
   to: string;
   title: string;
   company?: string;
-  clientProblem: ReactNode;
-  achievements: ReactNode[];
+  clientProblem: string;
+  achievements: Achievement[];
   skills: string[],
   isLastItem?: boolean;
 }
@@ -52,7 +53,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
           <View style={styles.achievementsContainer}>
             {achievements.map((achievement, key) => (
-              <Text key={key} style={styles.achievement}><Text style={styles.bulletPoint}>{'• '}</Text>{achievement}</Text>
+              <Text key={key} style={styles.achievement}><Text style={styles.bulletPoint}>{'• '}</Text><Text isBold>{achievement.highlight}</Text>{achievement.text}</Text>
             ))}
           </View>
 

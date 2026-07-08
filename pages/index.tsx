@@ -267,11 +267,11 @@ const Home: NextPage = () => {
 
           <div className={styles.actions}>
             <button className={styles.btnPrimary} onClick={() => setShowFullPdf(true)}>
-              View My CV
+              View My CV as PDF
             </button>
-            {/* <button className={styles.btnSecondary} onClick={() => setShowOnePagePdf(true)}>
-              One Page CV
-            </button> */}
+            <Link href="/cv">
+              <a className={styles.btnSecondary}>View CV in Browser</a>
+            </Link>
           </div>
         </div>
 

@@ -1,0 +1,300 @@
+.sheet {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  color: #242424;
+  font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Left sidebar ---------- */
+.left {
+  width: 32%;
+  min-width: 220px;
+  background: #434244;
+  color: #fff;
+  padding: 18px 0 24px;
+}
+
+.photoWrap {
+  width: 86%;
+  margin: 4px auto 8px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 9999px;
+}
+
+.panel {
+  margin: 14px 18px;
+}
+
+.panelTitle {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #8e8e8f;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.panelBody {
+  padding-top: 10px;
+}
+
+.leftItem {
+  margin: 0 0 5px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.bold {
+  font-weight: 900;
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.8rem;
+  word-break: break-word;
+}
+
+a.contactRow:hover .contactText {
+  text-decoration: underline;
+}
+
+.contactIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.contactText {
+  min-width: 0;
+}
+
+.skillRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+}
+
+.skillYears {
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+/* ---------- Right content ---------- */
+.right {
+  flex: 1;
+  min-width: 0;
+  padding: 26px 26px 30px;
+}
+
+.header {
+  text-align: center;
+}
+
+.name {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.titles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.titleItem {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.titleSeparator {
+  padding: 0 5px;
+}
+
+.hr {
+  border: none;
+  border-top: 1px solid #d4d4d4;
+  margin: 16px 0;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.workTitle {
+  margin-top: 22px;
+}
+
+.aboutText {
+  margin: 2px 0 4px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(36, 36, 36, 0.75);
+  text-align: justify;
+}
+
+/* ---------- Timeline ---------- */
+.timeline {
+  margin-top: 10px;
+  border-left: 1px solid #d4d4d4;
+}
+
+.projectCard {
+  position: relative;
+  padding: 4px 0 18px 20px;
+}
+
+.projectCard:last-child {
+  padding-bottom: 0;
+}
+
+.marker {
+  position: absolute;
+  left: -5px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4a4a4a;
+}
+
+.projectHeading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+}
+
+.projectTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.projectPeriod {
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
+.projectName {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.clientProblem {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(36, 36, 36, 0.75);
+  text-align: justify;
+}
+
+.achievements {
+  margin: 12px 0 8px;
+  padding-left: 16px;
+  color: rgba(36, 36, 36, 0.8);
+}
+
+.achievement {
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: justify;
+}
+
+.achievement strong {
+  font-weight: 900;
+  color: #242424;
+}
+
+.skills {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(36, 36, 36, 0.7);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 680px) {
+  .sheet {
+    flex-direction: column;
+    border-radius: 0;
+  }
+
+  .left {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 6px;
+    padding-bottom: 16px;
+  }
+
+  .photoWrap {
+    grid-column: 1 / -1;
+    width: 130px;
+    margin: 8px auto;
+  }
+
+  .panel:first-of-type,
+  .panel:nth-of-type(2) {
+    /* Contact + AI tools */
+  }
+
+  .name {
+    font-size: 1.6rem;
+  }
+
+  .right {
+    padding: 20px 18px 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .left {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Print ---------- */
+@media print {
+  .sheet {
+    max-width: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+}

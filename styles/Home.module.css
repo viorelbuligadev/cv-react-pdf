@@ -219,6 +219,9 @@
 }
 
 .btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.75rem 2rem;
   background: transparent;
   color: #94a3b8;
@@ -227,6 +230,7 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
   transition: border-color 0.2s, color 0.2s;
 }
 
