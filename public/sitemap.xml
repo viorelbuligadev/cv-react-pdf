@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://viorelbuliga.com/blog/aspnet-core-stateful-assumptions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://viorelbuliga.com/blog/az-204-retirement-ai-200</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
