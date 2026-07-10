@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'aspnet-core-stateful-assumptions',
+    title: 'Why Your ASP.NET Core Web API Breaks When You Scale It Horizontally',
+    description: 'A Web API is supposed to be stateless, but several ASP.NET Core defaults are not. Run two instances and the built-in rate limiter, output cache, and in-memory cache each keep their own copy per process - so a "100 per minute" limit becomes 100 per instance. Learn which defaults break and how to move that state to a distributed store.',
+    date: '2026-07-10',
+    readTime: 6,
+    tags: ['.NET', 'ASP.NET Core', 'Web API', 'Scalability', 'Backend'],
+    image: '/images/statelessapps.png',
+    faq: [
+      { q: 'Does the built-in ASP.NET Core rate limiter work across multiple instances?', a: 'Each instance enforces the limit in its own process memory, with no distributed store behind it. That is fine when the limit protects each instance own capacity - the total throughput simply scales with the number of instances. It is a problem when the limit is meant to be global, like a per-caller quota or protection for a shared resource, because one caller requests are spread across instances and the effective limit multiplies. For a global limit, use a distributed rate limiter backed by Redis, or enforce it at the gateway or ingress layer.' },
+      { q: 'Is output caching shared across servers?', a: 'Not by default. The default output cache store is in-process, so each server has a separate cache that is lost when the process restarts. To share cached responses across instances, use the Redis-backed store via AddStackExchangeRedisOutputCache.' },
+      { q: 'Is IMemoryCache shared between instances?', a: 'No. IMemoryCache lives inside the web process, so each instance keeps its own cache. For read-through caching over a database this is usually acceptable, since the database remains the source of truth. For shared cache state, use a distributed cache or HybridCache with a distributed backing store.' },
+      { q: 'Do I need sticky sessions for a Web API?', a: 'Usually not. A token-based, stateless API does not need stickiness. You only need it if you keep per-user state in process memory, and even then the Microsoft docs recommend externalizing that state to a distributed store instead, because sticky sessions hurt scalability and complicate deployments.' },
+      { q: 'Are singletons and background services per instance?', a: 'Yes. A singleton is one object per process, not per deployment, so two instances have two separate singletons. A BackgroundService starts inside every app host, so every instance runs its own copy of the worker. Both are safe on one process and need care once you scale out.' },
+      { q: 'My API uses cookie auth - why do users get logged out after scaling?', a: 'Because each instance generates its own Data Protection key ring by default, and cookies encrypted by one instance cannot be decrypted by another. If your API issues auth cookies or antiforgery tokens, persist a shared key ring (file share, Blob, Redis, or database) and set the same application name on every instance.' },
+    ],
+  },
+  {
     slug: 'dotnet-per-operation-timeouts',
     title: 'Per-Operation Timeouts in .NET: Why HttpClient.Timeout Is Not Enough',
     description: 'HttpClient.Timeout is infrastructure-level - it applies the same budget to every call. Learn how to use CancellationTokenSource and CreateLinkedTokenSource to set per-operation timeouts that compose with the caller token and tell you exactly who cancelled.',
