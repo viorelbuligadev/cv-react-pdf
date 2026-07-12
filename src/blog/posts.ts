@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'aspnet-core-stateless-web-api',
+    title: 'How to Make Your ASP.NET Core Web API Stateless: Redis, HybridCache and Shared Storage',
+    description: 'Part two of the horizontal scale series. Move the state that must be shared out of the web process: a distributed cache instead of IMemoryCache, HybridCache with stampede protection, a Redis-backed output cache, shared storage, and a shared Data Protection key ring - plus what it costs and what to leave local.',
+    date: '2026-07-12',
+    readTime: 7,
+    tags: ['.NET', 'ASP.NET Core', 'Web API', 'Redis', 'Caching'],
+    image: '/images/distributedstate.png',
+    faq: [
+      { q: 'Does AddDistributedMemoryCache actually distribute anything?', a: 'No. The docs are explicit: the distributed memory cache "isn\'t an actual distributed cache. The app instance stores the cached items on the server where the app is running." It implements IDistributedCache so you can swap in a real provider later, and it is useful for development and testing, but in a scaled-out deployment it gives you a per-instance cache.' },
+      { q: 'Should I use HybridCache or IDistributedCache directly?', a: 'Prefer HybridCache for new code. It gives you a two-level cache (in-process L1 plus your distributed L2), handles serialization, and adds stampede protection. It uses whatever IDistributedCache you registered as its secondary store, so you still choose Redis, SQL Server, or Postgres underneath.' },
+      { q: 'What is a cache stampede, and how does HybridCache prevent it?', a: 'A stampede happens when a popular cache entry expires and many concurrent requests all miss at once, so they all hit the database to rebuild the same value. HybridCache ensures that only one concurrent caller for a given key calls the factory method, and all other callers wait for that result. You get this even without a distributed cache configured.' },
+      { q: 'If I invalidate a cache entry, do all instances see it immediately?', a: 'Not entirely. Removing by key or tag invalidates the entry on the current server and in the distributed store, but the docs note that the in-memory cache on other servers is not affected. Their L1 copies survive until they expire. If a value must go stale everywhere at once, use a short LocalCacheExpiration or avoid caching it locally.' },
+      { q: 'Do I need Redis just to run more than one instance?', a: 'Not necessarily. It depends on which state must actually be shared. If your API is token-based and its caches are read-through over a database, several instances can run happily with only local caches. You need a shared store when correctness depends on instances agreeing - global rate limits, shared output cache, coordinated background work.' },
+      { q: 'Is there a size limit on what I can cache?', a: 'Yes. HybridCache has a MaximumPayloadBytes option that defaults to 1 MB, and a MaximumKeyLength that defaults to 1024 characters. Attempts to store values above the limit are logged and the value is not cached - so a silently empty cache is often an oversized payload.' },
+    ],
+  },
+  {
     slug: 'aspnet-core-stateful-assumptions',
     title: 'Why Your ASP.NET Core Web API Breaks When You Scale It Horizontally',
     description: 'A Web API is supposed to be stateless, but several ASP.NET Core defaults are not. Run two instances and the built-in rate limiter, output cache, and in-memory cache each keep their own copy per process - so a "100 per minute" limit becomes 100 per instance. Learn which defaults break and how to move that state to a distributed store.',

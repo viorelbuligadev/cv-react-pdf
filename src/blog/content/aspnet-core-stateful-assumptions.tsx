@@ -137,7 +137,7 @@ builder.Services.AddStackExchangeRedisOutputCache(options =>
       <li><strong>Must be shared:</strong> rate limits that exist for fairness or cost, output cache you rely on for consistency, counters used for correctness, and any job that should run exactly once.</li>
     </ul>
     <p>
-      A stateless service is not a service with no state. It is a service whose important state does not privately belong to the web process. That state still exists - it just lives in shared infrastructure. Moving it there is the subject of the next article in this series.
+      A stateless service is not a service with no state. It is a service whose important state does not privately belong to the web process. That state still exists - it just lives in shared infrastructure. <a href="/blog/aspnet-core-stateless-web-api" className={styles.link}>Moving it there is the subject of part two</a>.
     </p>
 
     <h2>Frequently asked questions</h2>
