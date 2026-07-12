@@ -5,7 +5,7 @@ const AspNetCoreStatelessWebApi = () => (
   <div className={styles.article}>
 
     <div className={styles.quickAnswer}>
-      <strong>Quick answer:</strong> To make an ASP.NET Core Web API stateless, move the state that must be shared out of the web process and into infrastructure built for it. In practice: a distributed cache (Redis or SQL Server) instead of <code>IMemoryCache</code>, <code>HybridCache</code> as the modern front end for it, a Redis-backed output cache, shared object storage instead of local disk, and a shared Data Protection key ring. Careful: <code>AddDistributedMemoryCache</code> sounds distributed but is not - the docs say plainly it "isn't an actual distributed cache".
+      <strong>Quick answer:</strong> To make an ASP.NET Core Web API stateless, move the state that must be shared out of the web process and into infrastructure built for it. In practice: a distributed cache (Redis or SQL Server) instead of <code>IMemoryCache</code>, <code>HybridCache</code> as the modern front end for it, a Redis-backed output cache, and shared object storage instead of local disk. Careful: <code>AddDistributedMemoryCache</code> sounds distributed but is not - the docs say plainly it "isn't an actual distributed cache".
     </div>
 
     <p className={styles.lead}>
@@ -108,11 +108,6 @@ public class OrderService(HybridCache cache, IOrderRepository repo)
             <td>Blob storage or an equivalent, so any instance can read what another wrote.</td>
           </tr>
           <tr>
-            <td>Data Protection keys</td>
-            <td>Shared key ring</td>
-            <td>Persist keys to a shared location and call <code>SetApplicationName</code> with the same value on every instance.</td>
-          </tr>
-          <tr>
             <td>Background job state</td>
             <td>Database or queue</td>
             <td>Workers must claim work atomically. That is the subject of part three.</td>
@@ -125,12 +120,7 @@ builder.Services.AddStackExchangeRedisOutputCache(options =>
 {
     options.Configuration =
         builder.Configuration.GetConnectionString("Redis");
-});
-
-// data protection: one key ring, same app name everywhere
-builder.Services.AddDataProtection()
-    .PersistKeysToAzureBlobStorage(blobUri, credential)
-    .SetApplicationName("shop-api");`}</pre>
+});`}</pre>
 
     <h2>What does moving state out cost you?</h2>
     <p>
@@ -149,7 +139,7 @@ builder.Services.AddDataProtection()
     </p>
     <ul>
       <li><strong>Leave it local</strong> when the instance can rebuild it cheaply and nobody is harmed by two instances disagreeing for a few seconds. A read-through cache over a database is the classic case - the database is still the source of truth.</li>
-      <li><strong>Move it out</strong> when the state must be coherent across instances, must survive a restart, or must coordinate work: a global rate limit, an output cache you rely on for consistency, records like receipts, the Data Protection key ring, and any job that must run exactly once.</li>
+      <li><strong>Move it out</strong> when the state must be coherent across instances, must survive a restart, or must coordinate work: a global rate limit, an output cache you rely on for consistency, records like receipts, and any job that must run exactly once.</li>
     </ul>
     <p>
       Get that split right and the process becomes disposable. You can add an instance, remove one, or deploy over one, and the system carries on - because nothing important was living inside it.
@@ -188,7 +178,6 @@ builder.Services.AddDataProtection()
       <li><a href="https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid" target="_blank" rel="noopener noreferrer" className={styles.link}>HybridCache library in ASP.NET Core - Microsoft Learn</a></li>
       <li><a href="https://learn.microsoft.com/en-us/aspnet/core/performance/caching/distributed" target="_blank" rel="noopener noreferrer" className={styles.link}>Distributed caching in ASP.NET Core - Microsoft Learn</a></li>
       <li><a href="https://learn.microsoft.com/en-us/aspnet/core/performance/caching/output" target="_blank" rel="noopener noreferrer" className={styles.link}>Output caching middleware in ASP.NET Core - Microsoft Learn</a></li>
-      <li><a href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview" target="_blank" rel="noopener noreferrer" className={styles.link}>Configure ASP.NET Core Data Protection - Microsoft Learn</a></li>
       <li><a href="https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit" target="_blank" rel="noopener noreferrer" className={styles.link}>Rate limiting middleware in ASP.NET Core - Microsoft Learn</a></li>
     </ul>
 

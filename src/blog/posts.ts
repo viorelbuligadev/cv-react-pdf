@@ -18,7 +18,7 @@ export const posts: BlogPost[] = [
   {
     slug: 'aspnet-core-stateless-web-api',
     title: 'How to Make Your ASP.NET Core Web API Stateless: Redis, HybridCache and Shared Storage',
-    description: 'Part two of the horizontal scale series. Move the state that must be shared out of the web process: a distributed cache instead of IMemoryCache, HybridCache with stampede protection, a Redis-backed output cache, shared storage, and a shared Data Protection key ring - plus what it costs and what to leave local.',
+    description: 'Part two of the horizontal scale series. Move the state that must be shared out of the web process: a distributed cache instead of IMemoryCache, HybridCache with stampede protection, a Redis-backed output cache, and shared object storage - plus what it costs you and what you can safely leave local.',
     date: '2026-07-12',
     readTime: 7,
     tags: ['.NET', 'ASP.NET Core', 'Web API', 'Redis', 'Caching'],
