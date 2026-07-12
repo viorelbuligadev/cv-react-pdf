@@ -7,6 +7,7 @@ import { posts, BlogPost } from '../../src/blog/posts';
 import styles from '../../styles/BlogPost.module.css';
 
 const contentMap: Record<string, React.ComponentType> = {
+  'aspnet-core-stateless-web-api': dynamic(() => import('../../src/blog/content/aspnet-core-stateless-web-api')),
   'aspnet-core-stateful-assumptions': dynamic(() => import('../../src/blog/content/aspnet-core-stateful-assumptions')),
   'az-204-retirement-ai-200': dynamic(() => import('../../src/blog/content/az-204-retirement')),
   'sql-joins-inner-left-right': dynamic(() => import('../../src/blog/content/sql-joins')),
