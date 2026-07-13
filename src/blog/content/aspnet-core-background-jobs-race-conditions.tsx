@@ -175,22 +175,29 @@ if (completed == 0)
 db.WebhookDeliveries.Add(new WebhookDelivery
 {
     EventId = eventId,
-    DeliveredAt = DateTimeOffset.UtcNow
+    ClaimedForDeliveryAt = DateTimeOffset.UtcNow
 });
 
 try
 {
     await db.SaveChangesAsync(ct);
 }
-catch (DbUpdateException)
+catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
 {
-    // Already recorded, so this run is a retry. Nothing to do.
+    // A previous run already claimed this delivery, so this run is a
+    // retry of work that at least started. Nothing to do.
     return;
 }
 
 await webhookSender.PostAsync(eventId, ct);`}</pre>
     <p>
-      Be clear about what that buys: it narrows the window, it does not close it. The database record and the outgoing call are still two different systems, and a crash between them either repeats the call or loses it. Closing the gap properly means the outbox pattern, or a broker with real delivery guarantees. What does not work is assuming exactly-once and building on the assumption.
+      <strong>Read the ordering carefully, because it is a choice.</strong> Recording first and sending second means a crash in the gap <em>loses</em> the webhook: the row already exists, so every later retry hits the unique constraint and returns. Flip the two - send first, record second - and a crash in the gap <em>duplicates</em> it instead. Neither ordering closes the window; you are only picking which failure you would rather have.
+    </p>
+    <p>
+      For most webhooks duplication is the safer failure, which is precisely why receivers are expected to deduplicate by event ID. Note also the exception filter: <code>IsUniqueConstraintViolation</code> is a small extension method that checks the provider-specific error (SqlState <code>23505</code> on PostgreSQL, error <code>2601</code> or <code>2627</code> on SQL Server). Catching <code>DbUpdateException</code> unconditionally would treat a deadlock or an unrelated constraint as "already delivered" and quietly abandon the job.
+    </p>
+    <p>
+      So be clear about what any of this buys: it narrows the window, it does not close it. The database record and the outgoing call are still two different systems, and a crash between them either repeats the call or loses it. Closing the gap properly means the outbox pattern, or a broker with real delivery guarantees. What does not work is assuming exactly-once and building on the assumption.
     </p>
 
     <h2>When does something else fit better?</h2>
