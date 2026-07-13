@@ -5,7 +5,7 @@ const IEnumerableVsIQueryable = () => (
   <div className={styles.article}>
 
     <div className={styles.quickAnswer}>
-      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. So the moment a query is typed as <code>IEnumerable&lt;T&gt;</code>, every operator after it runs in your process - and EF Core loads the whole table to feed it.
+      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. So the moment a query is typed as <code>IEnumerable&lt;T&gt;</code>, every operator after it runs in your process - and EF Core fetches every row of the table, and tracks them, to feed it.
     </div>
 
     <p className={styles.lead}>
@@ -36,7 +36,7 @@ e = e.Where(o => o.Total > 100);`}</pre>
       Same lambda, same result set, wildly different behaviour. In the first case the compiler builds an <strong>expression tree</strong> - a data structure describing "a comparison between the Total property and the constant 100". EF Core walks that tree and emits <code>WHERE [o].[Total] &gt; 100</code>.
     </p>
     <p>
-      In the second case the compiler builds a <strong>compiled delegate</strong>. A delegate can only be <em>invoked</em>; it cannot be inspected. EF Core has nothing to read, so it does not even try. It issues <code>SELECT * FROM [Orders]</code>, materialises every row, and then your delegate filters them one by one in memory.
+      In the second case the compiler builds a <strong>compiled delegate</strong>. A delegate can only be <em>invoked</em>; it cannot be inspected. EF Core has nothing to read, so it does not even try. It sends a <code>SELECT</code> with <strong>no <code>WHERE</code> clause at all</strong>, materialises every row into an <code>Order</code>, and then your delegate filters them one by one in your process.
     </p>
     <div className={styles.callout}>
       <strong>The variable's type picks the overload.</strong> Nothing else changed - not the lambda, not the query, not the LINQ method name. Writing <code>IEnumerable&lt;Order&gt;</code> instead of <code>IQueryable&lt;Order&gt;</code> silently binds every subsequent <code>Where</code>, <code>OrderBy</code> and <code>Take</code> to the in-memory version.
@@ -70,8 +70,14 @@ var big = repo.GetOrders()
     .Take(20)                        // in memory
     .ToList();                       // the whole table was already loaded`}</pre>
     <p>
-      The caller wrote a perfectly reasonable query. The database received <code>SELECT * FROM [Orders]</code>. On a table with ten thousand rows nobody notices. On a table with ten million, the app falls over - and the query in the code review looked fine.
+      The caller wrote a perfectly reasonable query. The database received a <code>SELECT</code> over the whole table with no <code>WHERE</code>, no <code>ORDER BY</code> and no <code>TOP</code>. On ten thousand rows nobody notices. On ten million, the app falls over - and the query in the code review looked fine.
     </p>
+    <p>
+      Be precise about what that costs, because it is worse than "it loads the table". Every row crosses the network and is <strong>materialised into an entity object</strong>. Whether they are all held in memory at once depends on the operators: a bare <code>Where</code> streams and discards as it goes, but <code>OrderByDescending</code> in LINQ-to-Objects has to see every element before it can sort even one - so in the example above, the entire table <em>is</em> buffered.
+    </p>
+    <div className={styles.callout}>
+      <strong>And the bill nobody mentions: change tracking.</strong> <code>db.Orders</code> is a tracking query by default, and tracking happens at materialisation - not at filtering. So every row you fetch, including the millions your delegate is about to throw away, gets a snapshot in the change tracker. The <code>DbContext</code> grows with the whole table, and any subsequent <code>SaveChanges</code> has to walk all of it. If you must pull rows to the client, <code>AsNoTracking()</code> at least stops EF Core from paying for entities you are only going to discard.
+    </div>
 
     <h2>Why doesn't EF Core throw and save you?</h2>
     <p>
@@ -92,21 +98,36 @@ var big = repo.GetOrders()
 
     <h2>The overload trap that does this behind your back</h2>
     <p>
-      You do not need to type <code>IEnumerable</code> anywhere to fall into this. A helper method with the wrong parameter type is enough:
+      You do not need to type <code>IEnumerable</code> on a variable to fall into this. A helper method with the wrong <em>parameter</em> type is enough. And the way the compiler reacts to it is the most instructive thing in this article.
     </p>
-    <pre className={styles.code}>{`// The source is IQueryable, so this must be safe... right?
+    <pre className={styles.code}>{`// Source is IQueryable, predicate is a delegate.
+// Overload resolution picks Enumerable.Where, which returns
+// IEnumerable<T> - so this does NOT compile. CS0266.
 public static IQueryable<T> Filter<T>(
     IQueryable<T> source,
-    Func<T, bool> predicate)          // <- delegate, not expression
-    => source.Where(predicate);        // binds to Enumerable.Where!
+    Func<T, bool> predicate)
+    => source.Where(predicate);
 
-// Correct: keep it an expression all the way down
+// Same mistake, but the signature says IEnumerable.
+// Now it compiles - and silently runs on the client.
+public static IEnumerable<T> Filter<T>(
+    IQueryable<T> source,
+    Func<T, bool> predicate)
+    => source.Where(predicate);
+
+// Correct: keep it an expression all the way down.
 public static IQueryable<T> Filter<T>(
     IQueryable<T> source,
     Expression<Func<T, bool>> predicate)
     => source.Where(predicate);        // binds to Queryable.Where`}</pre>
     <p>
-      In the first version the source really is an <code>IQueryable</code>, but the <em>predicate</em> is a delegate, so overload resolution picks <code>Enumerable.Where</code> - and the whole chain degrades to client evaluation. It even still compiles as <code>IQueryable&lt;T&gt;</code> on the way out, because <code>IQueryable</code> derives from <code>IEnumerable</code>. The type says one thing and the execution does another.
+      Look at what separates the first two. In both, the source really is an <code>IQueryable</code>, but the <em>predicate</em> is a delegate - so <code>Queryable.Where</code> is not even a candidate (a <code>Func</code> does not convert to an <code>Expression</code>), and overload resolution falls to <code>Enumerable.Where</code>, which hands back an <code>IEnumerable&lt;T&gt;</code>.
+    </p>
+    <p>
+      The first version therefore <strong>refuses to compile</strong>. <code>IQueryable</code> derives from <code>IEnumerable</code>, so the conversion goes that way and not the other - you cannot return an <code>IEnumerable&lt;T&gt;</code> where an <code>IQueryable&lt;T&gt;</code> was promised. The type system catches you.
+    </p>
+    <p>
+      The second version compiles perfectly, because the signature already gave up. That is the whole lesson in two lines: <strong>the type system will defend you for exactly as long as you keep asking for <code>IQueryable</code>. The moment a signature says <code>IEnumerable</code>, it stops arguing.</strong>
     </p>
     <p>
       <strong>The rule: if a method takes a predicate that must reach the database, its type is <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>. Never <code>Func&lt;T, bool&gt;</code>.</strong>
@@ -153,7 +174,7 @@ var flagged = (await db.Orders
 
     <h2>How do you prove which side you are on?</h2>
     <p>
-      Do not guess from the type - read the SQL. On any <code>IQueryable</code>, <code>ToQueryString()</code> gives you the statement EF Core would send:
+      Do not guess from the type - read the SQL. On any <code>IQueryable</code>, <code>ToQueryString()</code> (EF Core 5.0 and later) gives you the statement EF Core would send:
     </p>
     <pre className={styles.code}>{`var query = db.Orders.Where(o => o.Total > 100);
 Console.WriteLine(query.ToQueryString());
@@ -209,7 +230,7 @@ Console.WriteLine(query.ToQueryString());
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Why does typing a query as IEnumerable cause a full table scan?</strong>
-        <p className={styles.faqA}>Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It fetches every row, materialises them, and your delegate filters them in your process. The results are correct, which is exactly why nobody notices until the table grows.</p>
+        <p className={styles.faqA}>Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker - including the ones you are about to discard. The results are still correct, which is exactly why nobody notices until the table grows.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Doesn't EF Core throw when it cannot translate something?</strong>
