@@ -110,7 +110,7 @@ public class OrderService(HybridCache cache, IOrderRepository repo)
           <tr>
             <td>Background job state</td>
             <td>Database or queue</td>
-            <td>Workers must claim work atomically. That is the subject of part three.</td>
+            <td>Workers must claim work atomically. That is the subject of <a href="/blog/aspnet-core-background-jobs-race-conditions" className={styles.link}>part three</a>.</td>
           </tr>
         </tbody>
       </table>

@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'aspnet-core-background-jobs-race-conditions',
+    title: 'The Conditional UPDATE: Safe Background Jobs Across Many ASP.NET Core Instances',
+    description: 'EF Core\'s ExecuteUpdateAsync returns the number of rows it changed. Put your precondition in the WHERE clause and that number becomes a verdict - zero means someone beat you to it. Microsoft documents this as concurrency control you implement yourself. Here is the technique, the check-then-act race it kills, and how it lets many instances share one job table safely.',
+    date: '2026-07-13',
+    readTime: 8,
+    tags: ['.NET', 'ASP.NET Core', 'EF Core', 'Concurrency', 'Backend'],
+    image: '/images/jobclaiming.png',
+    faq: [
+      { q: 'What does ExecuteUpdateAsync actually return, and why does it matter?', a: 'It returns the number of rows the UPDATE affected. EF Core\'s docs present this as a way of implementing concurrency control yourself: put a precondition in the WHERE clause, and if the call reports zero rows, the precondition was no longer true when the write reached the database. That row count is the whole safety mechanism.' },
+      { q: 'Why is reading a row and then updating it unsafe?', a: 'Because the check and the act are two separate trips to the database, and anything can happen in the gap. Two callers can both pass the check before either one writes, and both writes then succeed because each is a legal update. Nothing throws, so the failure is silent. A conditional UPDATE removes the gap by making the check part of the write.' },
+      { q: 'Do background services run on every instance of my app?', a: 'Yes. A BackgroundService or IHostedService runs inside the app host, and every instance is its own host. Four instances means four copies of the worker running at the same time. If the worker polls for jobs, they all compete for the same rows.' },
+      { q: 'Why do job leases need an expiry?', a: 'Because workers crash. If a worker dies while holding a job and the lease never expires, that job stays locked forever and nothing picks it up again. An expiry makes abandoned jobs claimable once more. The trade-off is that a worker whose lease expired may still be running, which is why completion also has to verify ownership.' },
+      { q: 'Can I guarantee a job runs exactly once?', a: 'No, and designing as though you can is the mistake. A worker can always crash after doing the work but before recording that it did, and the retry that follows is correct behaviour. Design for at-least-once execution and make the side effects idempotent - usually with a unique key that makes a duplicate insert fail - so that a retry cannot corrupt anything.' },
+      { q: 'Does ExecuteUpdateAsync run inside a transaction?', a: 'Not on its own. The EF Core docs state that ExecuteUpdate and ExecuteDelete do not implicitly start a transaction, so each call runs in its own. The single UPDATE is still atomic by itself, which is all the claim requires. If a claim must succeed or fail together with another write, start a transaction explicitly.' },
+    ],
+  },
+  {
     slug: 'aspnet-core-stateless-web-api',
     title: 'How to Make Your ASP.NET Core Web API Stateless: Redis, HybridCache and Shared Storage',
     description: 'Part two of the horizontal scale series. Move the state that must be shared out of the web process: a distributed cache instead of IMemoryCache, HybridCache with stampede protection, a Redis-backed output cache, and shared object storage - plus what it costs you and what you can safely leave local.',
