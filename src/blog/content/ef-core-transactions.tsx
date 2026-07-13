@@ -51,31 +51,81 @@ await db.SaveChangesAsync(ct);`}</pre>
     </p>
     <pre className={styles.code}>{`await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-try
-{
-    db.Orders.Add(order);
-    await db.SaveChangesAsync(ct);
+db.Orders.Add(order);
+await db.SaveChangesAsync(ct);
 
-    // Separate operation - would be its own transaction without tx
-    var reserved = await db.Stock
-        .Where(s => s.Sku == sku && s.Available >= quantity)
-        .ExecuteUpdateAsync(s => s
-            .SetProperty(x => x.Available, x => x.Available - quantity), ct);
+// Separate operation. Without tx it would be its own transaction;
+// with tx open on the context, it joins this one.
+var reserved = await db.Stock
+    .Where(s => s.Sku == sku && s.Available >= quantity)
+    .ExecuteUpdateAsync(s => s
+        .SetProperty(x => x.Available, x => x.Available - quantity), ct);
 
-    if (reserved == 0)
-        throw new OutOfStockException(sku);
+if (reserved == 0)
+    throw new OutOfStockException(sku);   // no commit -> rolled back on dispose
 
-    await tx.CommitAsync(ct);
-}
-catch
-{
-    // Disposing without a commit rolls back, but being explicit
-    // makes the intent obvious to the next reader.
-    await tx.RollbackAsync(ct);
-    throw;
-}`}</pre>
+await tx.CommitAsync(ct);`}</pre>
     <p>
-      Note that the transaction rolls back automatically when it is disposed without a commit. The explicit <code>RollbackAsync</code> is not strictly required - it is there so nobody has to reason about disposal semantics to understand the code.
+      There is no <code>try</code>/<code>catch</code> here on purpose. <code>await using</code> disposes the transaction on any exception, and a transaction disposed without a commit is rolled back. Calling <code>RollbackAsync</code> yourself in a <code>catch</code> is not just redundant - if the exception came out of <code>CommitAsync</code>, the transaction is already finished and the rollback can throw on top of the original error. Let disposal do it.
+    </p>
+    <div className={styles.callout}>
+      <strong>One caution on mixing.</strong> The docs advise that "it is usually a good idea to avoid mixing both tracked <code>SaveChanges</code> modifications and untracked modifications via <code>ExecuteUpdate</code>/<code>ExecuteDelete</code>", because <code>ExecuteUpdate</code> writes straight past the change tracker and leaves any tracked copy of that row stale. The example above is safe precisely because the two touch different entities - <code>Stock</code> is never loaded into the tracker. If you <code>ExecuteUpdate</code> a row you have also loaded and modified, the later <code>SaveChanges</code> will happily overwrite it.
+    </div>
+
+    <h2>Which isolation level are you actually getting?</h2>
+    <p>
+      Whichever one your provider defaults to - on SQL Server, that is Read Committed. <code>BeginTransactionAsync</code> takes an overload if you need something stronger:
+    </p>
+    <pre className={styles.code}>{`using System.Data;
+
+await using var tx = await db.Database.BeginTransactionAsync(
+    IsolationLevel.Serializable, ct);`}</pre>
+    <p>
+      The level decides which anomalies the database is allowed to show you inside the transaction.
+    </p>
+    <div className={styles.tableWrapper}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Dirty read</th>
+            <th>Non-repeatable read</th>
+            <th>Phantom read</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Read Uncommitted</td>
+            <td>possible</td>
+            <td>possible</td>
+            <td>possible</td>
+          </tr>
+          <tr>
+            <td>Read Committed <em>(SQL Server default)</em></td>
+            <td>prevented</td>
+            <td>possible</td>
+            <td>possible</td>
+          </tr>
+          <tr>
+            <td>Repeatable Read</td>
+            <td>prevented</td>
+            <td>prevented</td>
+            <td>possible</td>
+          </tr>
+          <tr>
+            <td>Serializable</td>
+            <td>prevented</td>
+            <td>prevented</td>
+            <td>prevented</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The EF Core docs describe repeatable read as guaranteeing "that a transaction sees data in the database as it was when the transaction started, without being affected by any subsequent concurrent activity" - and note that databases reach that guarantee in two very different ways. SQL Server's <em>repeatable read</em> takes shared locks, so a concurrent writer <strong>blocks</strong> until you finish. SQL Server's <em>snapshot</em> level does not lock; it lets the other transaction write and then raises a serialization error when you try to. Serializable, per the docs, "provides the same guarantees as repeatable read (and adds additional ones)".
+    </p>
+    <p>
+      Raising the level is not free - you trade concurrency for consistency, and on a locking implementation you trade it for blocked writers. If you do raise it, keep the transaction short.
     </p>
 
     <h2>What are savepoints, and why does EF Core create them for you?</h2>
@@ -89,27 +139,40 @@ catch
       That is why a failed <code>SaveChanges</code> inside a transaction does not poison the whole transaction. You can catch the error, fix the data, and save again - which is exactly what you want when a concurrency conflict throws.
     </p>
     <p>
-      You can also place savepoints yourself, which is useful when part of the work is optional. Applying a promotion, for example: if it fails, you would rather drop the promotion than lose the order.
+      Which tells you exactly when a <em>manual</em> savepoint is worth placing - and when it is not. Wrapping a single <code>SaveChanges</code> in your own savepoint adds nothing: EF already did it. A manual savepoint earns its place when the optional sub-unit is made of <strong>several</strong> saves, and a failure in the last one must undo all of them.
+    </p>
+    <p>
+      Enrolling an order into a loyalty programme is that shape. It writes a membership row, then applies points, then records a bonus - three saves. If the bonus step fails, you want the whole enrolment gone, but the order itself to survive.
     </p>
     <pre className={styles.code}>{`await using var tx = await db.Database.BeginTransactionAsync(ct);
 
 db.Orders.Add(order);
 await db.SaveChangesAsync(ct);
 
-await tx.CreateSavepointAsync("OrderPlaced", ct);
+// Everything after this point is optional and must undo as a group
+await tx.CreateSavepointAsync("BeforeEnrolment", ct);
 
 try
 {
-    await ApplyPromotionAsync(order, promoCode, ct);
+    db.Memberships.Add(membership);
     await db.SaveChangesAsync(ct);
+
+    db.PointsEntries.Add(points);
+    await db.SaveChangesAsync(ct);
+
+    db.Bonuses.Add(bonus);
+    await db.SaveChangesAsync(ct);   // if this fails, the two above must go too
 }
-catch (PromotionException)
+catch (LoyaltyException)
 {
-    // Undo just the promotion. The order survives.
-    await tx.RollbackToSavepointAsync("OrderPlaced", ct);
+    // Undo the whole enrolment. The order survives.
+    await tx.RollbackToSavepointAsync("BeforeEnrolment", ct);
 }
 
 await tx.CommitAsync(ct);`}</pre>
+    <div className={styles.callout}>
+      <strong>A savepoint rolls back the database, not your DbContext.</strong> <code>RollbackToSavepointAsync</code> undoes the rows, but the change tracker is untouched - the entities you added or modified after the savepoint are still sitting there in their <code>Added</code> or <code>Modified</code> state. Commit right after, as above, and nothing more is written. But call <code>SaveChanges</code> again on the same context and EF will cheerfully re-apply the changes you just rolled back. If the context lives on, clear the tracker or drop the context.
+    </div>
     <div className={styles.callout}>
       <strong>Warning worth knowing about.</strong> The docs state that savepoints "are incompatible with SQL Server's Multiple Active Result Sets (MARS)". EF will not create them when MARS is enabled on the connection - even if MARS is not actively in use - and if an error occurs during <code>SaveChanges</code>, "the transaction may be left in an unknown state". If your connection string has <code>MultipleActiveResultSets=True</code>, you have silently lost this safety net.
     </div>
@@ -129,13 +192,17 @@ operations in the transaction as a retriable unit.`}</pre>
     <p>
       The error message tells you the fix, and it is worth reading carefully: hand the entire transaction to the execution strategy as a single delegate. If a transient failure hits, the strategy replays the whole block - transaction and all.
     </p>
-    <pre className={styles.code}>{`var strategy = db.Database.CreateExecutionStrategy();
+    <pre className={styles.code}>{`// IDbContextFactory, injected. The delegate may run more than once,
+// so it must build its own context every time.
+await using var probe = await factory.CreateDbContextAsync(ct);
+var strategy = probe.Database.CreateExecutionStrategy();
 
 await strategy.ExecuteAsync(async () =>
 {
+    await using var db = await factory.CreateDbContextAsync(ct);
     await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-    db.Orders.Add(order);
+    db.Orders.Add(new Order { CustomerId = customerId, Sku = sku });
     await db.SaveChangesAsync(ct);
 
     await db.Stock
@@ -148,32 +215,46 @@ await strategy.ExecuteAsync(async () =>
     <p>
       Everything that must be retried together goes inside the delegate. This is not optional decoration - without it, any explicit transaction in an app with retries enabled throws on the first line.
     </p>
+    <div className={styles.callout}>
+      <strong>The delegate must be replayable, and that is the part people get wrong.</strong> It is tempting to reuse the injected <code>DbContext</code> and an entity instance created outside. Do not. If the first attempt saved successfully and only the <em>commit</em> failed, that entity is now tracked as <code>Unchanged</code> and carries a generated key - re-running <code>Add</code> on the retry is meaningless. Build a fresh context and fresh entities inside the delegate, which is exactly why the Microsoft sample creates its context there too.
+    </div>
 
     <h2>How do you share one transaction across contexts or with raw SQL?</h2>
     <p>
-      Two contexts do not automatically share a transaction, because they do not automatically share a connection. To enlist both, they need the same <code>DbConnection</code> and the same <code>DbTransaction</code>.
+      Two contexts do not automatically share a transaction, because they do not automatically share a connection. The docs are strict about the requirement: "To share a transaction, the contexts must share both a <code>DbConnection</code> <strong>and</strong> a <code>DbTransaction</code>."
     </p>
-    <pre className={styles.code}>{`await using var connection = new SqlConnection(connectionString);
-var options = new DbContextOptionsBuilder<OrdersContext>()
+    <p>
+      That first half is the one people skip. A <code>DbTransaction</code> belongs to the connection it was opened on, so handing it to a context sitting on a <em>different</em> connection does not work. Both contexts have to be constructed over the <strong>same connection instance</strong>.
+    </p>
+    <pre className={styles.code}>{`using Microsoft.EntityFrameworkCore.Storage;   // for GetDbTransaction()
+
+await using var connection = new SqlConnection(connectionString);
+
+// Both contexts are built over the SAME connection instance
+var orderOptions = new DbContextOptionsBuilder<OrdersContext>()
     .UseSqlServer(connection)
     .Options;
 
-await using var orders = new OrdersContext(options);
+var auditOptions = new DbContextOptionsBuilder<AuditContext>()
+    .UseSqlServer(connection)      // <- the same 'connection', not a new one
+    .Options;
+
+await using var orders = new OrdersContext(orderOptions);
 await using var tx = await orders.Database.BeginTransactionAsync(ct);
 
 orders.Orders.Add(order);
 await orders.SaveChangesAsync(ct);
 
-// A different context, same connection, same transaction
+// Second context enlists in the transaction already running on that connection
 await using var audit = new AuditContext(auditOptions);
 await audit.Database.UseTransactionAsync(tx.GetDbTransaction(), ct);
 
 audit.Entries.Add(new AuditEntry { Action = "OrderPlaced", OrderId = order.Id });
 await audit.SaveChangesAsync(ct);
 
-await tx.CommitAsync(ct);`}</pre>
+await tx.CommitAsync(ct);   // both contexts commit as one`}</pre>
     <p>
-      The same <code>UseTransactionAsync</code> call is how you mix EF Core with raw ADO.NET: open the connection and the <code>DbTransaction</code> yourself, hand the transaction to the context, and both the raw command and the EF operations commit or roll back as one.
+      The same <code>UseTransactionAsync</code> call is how you mix EF Core with raw ADO.NET: open the connection and the <code>DbTransaction</code> yourself, set <code>command.Transaction</code> on the raw command, hand the same transaction to the context, and both commit or roll back as one.
     </p>
 
     <h2>What about TransactionScope?</h2>
@@ -216,8 +297,12 @@ scope.Complete();`}</pre>
             <td>The unit spans several saves, or mixes <code>SaveChanges</code> with <code>ExecuteUpdate</code>, <code>ExecuteDelete</code>, or raw SQL.</td>
           </tr>
           <tr>
+            <td>A stricter <code>IsolationLevel</code></td>
+            <td>Read Committed is not enough - you cannot tolerate non-repeatable reads or phantoms inside the transaction. Expect to pay in concurrency.</td>
+          </tr>
+          <tr>
             <td>Savepoints</td>
-            <td>Part of the work inside a transaction is optional and you want to abandon just that part.</td>
+            <td>An optional sub-unit inside a transaction spans <em>several</em> saves and must be abandoned as a group. A single save is already protected automatically.</td>
           </tr>
           <tr>
             <td><code>CreateExecutionStrategy()</code> wrapper</td>
