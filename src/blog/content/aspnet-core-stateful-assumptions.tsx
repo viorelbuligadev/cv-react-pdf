@@ -43,14 +43,24 @@ const AspNetCoreStatefulAssumptions = () => (
     </p>
     <pre className={styles.code}>{`builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("per-user", opt =>
-    {
-        opt.PermitLimit = 100;                 // 100 requests...
-        opt.Window = TimeSpan.FromMinutes(1);  // ...per minute
-    });
+    // One bucket per API key, not one bucket for everybody
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+        httpContext => RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Request.Headers["X-API-Key"].ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,                 // 100 requests...
+                Window = TimeSpan.FromMinutes(1)   // ...per minute, per key
+            }));
 });`}</pre>
+    <div className={styles.callout}>
+      <strong>The partition is what makes it per-caller.</strong> It is easy to write <code>options.AddFixedWindowLimiter("per-user", ...)</code> and assume the name does something. It does not - that gives you a <em>single</em> counter shared by every caller on the policy, so "100 per minute" becomes 100 across your whole user base. The docs are clear that partitions are what "divide the traffic into separate buckets that each get their own rate limit counters". Without a <code>partitionKey</code>, there is one bucket.
+    </div>
     <p>
-      To enforce a global limit you have two common options: a distributed rate limiter backed by a shared store such as Redis, or rate limiting at the gateway or ingress layer - an API gateway or reverse proxy - where all traffic passes through one place before it reaches your instances.
+      And note that partitioning does not rescue you from the scaling problem - the buckets still live in the memory of one process. Each instance keeps its own set of per-key counters, so the caller's effective limit still multiplies by the instance count.
+    </p>
+    <p>
+      To enforce a genuinely global limit you have two common options: a distributed rate limiter backed by a shared store such as Redis, or rate limiting at the gateway or ingress layer - an API gateway or reverse proxy - where all traffic passes through one place before it reaches your instances.
     </p>
 
     <h3>Output caching</h3>
