@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'ef-core-transactions',
+    title: 'Transactions in EF Core: What SaveChanges Already Does, and When to Take Over',
+    description: 'EF Core wraps every SaveChanges call in a transaction, so a single save is already atomic. You need BeginTransaction only when the all-or-nothing unit spans more than one save. Learn the automatic savepoints, the MARS trap that silently disables them, why explicit transactions throw once you enable retries, and how to share one transaction across contexts.',
+    date: '2026-07-13',
+    readTime: 8,
+    tags: ['.NET', 'EF Core', 'C#', 'Database', 'Backend'],
+    image: '/images/eftransactions.png',
+    faq: [
+      { q: 'Does SaveChanges run inside a transaction by default?', a: 'Yes. If the provider supports transactions, all changes in a single SaveChanges call are applied in one transaction. If any change fails, the whole call is rolled back and the database is left unmodified. You do not need BeginTransaction to make a single save atomic.' },
+      { q: 'When do I actually need BeginTransaction?', a: 'When the all-or-nothing unit is bigger than one save: several SaveChanges calls, a SaveChanges combined with ExecuteUpdate or ExecuteDelete (which do not start a transaction of their own), raw SQL mixed with EF Core, or two DbContext instances that must commit together.' },
+      { q: 'Why do I get "does not support user-initiated transactions"?', a: 'Because you enabled a retrying execution strategy (EnableRetryOnFailure) and then opened a transaction yourself. EF cannot know how to replay your transaction after a transient failure, so it throws. The fix is to get an execution strategy from DbContext.Database.CreateExecutionStrategy() and run the whole transaction inside strategy.ExecuteAsync, so it can be retried as one unit.' },
+      { q: 'Does EF Core create savepoints automatically?', a: 'Yes. When SaveChanges is called while a transaction is already open on the context, EF creates a savepoint first. If the save fails, it rolls back to that savepoint, so the transaction is left as if the save never happened and you can correct the problem and retry.' },
+      { q: 'Why would savepoints silently stop working?', a: 'Because of MARS. The docs state savepoints are incompatible with SQL Server\'s Multiple Active Result Sets, and EF will not create them when MARS is enabled on the connection - even if MARS is not actively used. If SaveChanges then fails inside a transaction, the transaction may be left in an unknown state. Check your connection string for MultipleActiveResultSets=True.' },
+      { q: 'Can I use TransactionScope with async code?', a: 'Yes, but you must pass TransactionScopeAsyncFlowOption.Enabled to the constructor, otherwise the ambient transaction does not flow across await calls. Also note that TransactionScope has no async commit or rollback - disposing it blocks the thread - and distributed transactions only work on .NET 7 or later, on Windows.' },
+    ],
+  },
+  {
     slug: 'aspnet-core-background-jobs-race-conditions',
     title: 'The Conditional UPDATE: Safe Background Jobs Across Many ASP.NET Core Instances',
     description: 'EF Core\'s ExecuteUpdateAsync returns the number of rows it changed. Put your precondition in the WHERE clause and that number becomes a verdict - zero means someone beat you to it. Microsoft documents this as concurrency control you implement yourself. Here is the technique, the check-then-act race it kills, and how it lets many instances share one job table safely.',
