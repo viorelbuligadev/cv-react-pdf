@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'ienumerable-vs-iqueryable',
+    title: 'IEnumerable vs IQueryable in EF Core: Why the Wrong Type Loads Your Whole Table',
+    description: 'The difference is not the interface - it is the type of the lambda. Queryable.Where takes an expression tree EF Core can translate to SQL; Enumerable.Where takes a delegate it cannot read. Learn why typing a query as IEnumerable loads the whole table, why EF Core\'s translation guard cannot save you there, and the overload trap that does it behind your back.',
+    date: '2026-07-13',
+    readTime: 8,
+    tags: ['.NET', 'EF Core', 'C#', 'LINQ', 'Performance'],
+    image: '/images/iqueryable.png',
+    faq: [
+      { q: 'What is the real difference between IEnumerable and IQueryable?', a: 'The type of the lambda the LINQ operator accepts. Queryable.Where takes an Expression<Func<T, bool>> - an expression tree EF Core can inspect and translate into SQL. Enumerable.Where takes a Func<T, bool> - a compiled delegate that can only be invoked, never inspected. IQueryable also inherits from IEnumerable, which is why the mistake compiles silently.' },
+      { q: 'Why does typing a query as IEnumerable cause a full table scan?', a: 'Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker - including the ones you are about to discard. The results are still correct, which is why it passes tests and review; the only place the difference shows up is the SQL.' },
+      { q: 'Doesn\'t EF Core throw when it cannot translate something?', a: 'Yes, but only inside IQueryable. Since EF Core 3.0, an expression it cannot translate anywhere other than the top-level projection causes a runtime exception rather than a silent client-side fallback. That guard fires when EF tries to translate and fails. If you typed the variable as IEnumerable, EF is never asked to translate anything, so there is nothing to fail and nothing to throw - you just get a table scan.' },
+      { q: 'What is the difference between AsEnumerable and ToList?', a: 'Both switch to client evaluation. AsEnumerable stays deferred and streams the results; ToList executes immediately and buffers everything into a list, which costs additional memory. Prefer AsEnumerable when you enumerate once, and ToList when you enumerate several times, since the list means only one trip to the database.' },
+      { q: 'Does calling AsQueryable() on a List give me SQL translation?', a: 'No. AsQueryable on an in-memory collection wraps it in a queryable facade whose provider still executes everything in memory. There is no database behind it and no SQL is generated. It is useful for satisfying a method signature or for testing, never for performance.' },
+      { q: 'Should my repository return IQueryable?', a: 'It is a genuine trade-off. Returning IQueryable keeps queries composable and translatable, but it leaks EF Core into the caller and lets anyone write a query you never reviewed. Returning IEnumerable hides EF Core but silently kills translation. A middle path is to accept the filter as a parameter and return a projected DTO, so composition happens inside the repository where you control it.' },
+    ],
+  },
+  {
     slug: 'ef-core-transactions',
     title: 'Transactions in EF Core: What SaveChanges Already Does, and When to Take Over',
     description: 'EF Core wraps every SaveChanges call in a transaction, so a single save is already atomic. You need BeginTransaction only when the all-or-nothing unit spans more than one save. Learn the automatic savepoints, the MARS trap that silently disables them, why explicit transactions throw once you enable retries, and how to share one transaction across contexts.',

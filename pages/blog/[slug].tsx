@@ -7,6 +7,7 @@ import { posts, BlogPost } from '../../src/blog/posts';
 import styles from '../../styles/BlogPost.module.css';
 
 const contentMap: Record<string, React.ComponentType> = {
+  'ienumerable-vs-iqueryable': dynamic(() => import('../../src/blog/content/ienumerable-vs-iqueryable')),
   'ef-core-transactions': dynamic(() => import('../../src/blog/content/ef-core-transactions')),
   'aspnet-core-background-jobs-race-conditions': dynamic(() => import('../../src/blog/content/aspnet-core-background-jobs-race-conditions')),
   'aspnet-core-stateless-web-api': dynamic(() => import('../../src/blog/content/aspnet-core-stateless-web-api')),
