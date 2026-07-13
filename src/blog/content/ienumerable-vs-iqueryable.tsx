@@ -171,6 +171,9 @@ var flagged = (await db.Orders
         </tbody>
       </table>
     </div>
+    <div className={styles.callout}>
+      <strong>And the AsQueryable trap that only shows up in tests.</strong> Wrapping a <code>List&lt;T&gt;</code> in <code>AsQueryable()</code> hands you an <code>EnumerableQuery&lt;T&gt;</code>, whose provider is not an <code>IAsyncQueryProvider</code>. So the moment the code under test calls an async EF Core operator on it - <code>ToListAsync</code>, <code>FirstOrDefaultAsync</code>, <code>CountAsync</code> - it throws at runtime, because the source is not an <code>IAsyncEnumerable</code>. That is why libraries like MockQueryable exist at all, and why the EF Core testing docs point away from this entirely: they call mocking <code>DbSet</code> for querying "complex and difficult" and discourage it, steering you toward SQLite in-memory mode or your real database system instead.
+    </div>
     <p>
       One nuance that is easy to get backwards: client evaluation in the <strong>final projection is allowed</strong>. EF Core "supports partial client evaluation in the top-level projection (essentially, the last call to <code>Select()</code>)". So calling a C# helper inside your last <code>Select</code> works without any <code>AsEnumerable</code> - EF fetches the columns it needs and runs your method on the results. It is only in a <code>Where</code>, an <code>OrderBy</code>, or a join that it throws.
     </p>
@@ -224,6 +227,12 @@ Console.WriteLine(query.ToQueryString());
     <p>
       The habit that prevents all of it is small: <strong>keep <code>IQueryable</code> in the type until the moment you genuinely want rows in memory, and make that moment explicit.</strong> Every accidental <code>IEnumerable</code> is a decision to load the table, made by someone who did not know they were making it.
     </p>
+    <p>
+      Inside a method body, <code>var</code> is the cheapest way to hold that line. It keeps whatever type the provider actually handed back, so you cannot <em>declare</em> your way onto <code>Enumerable.Where</code> - making the mistake requires writing <code>IEnumerable&lt;T&gt;</code> out by hand. What <code>var</code> cannot do is guard a boundary: parameters and return types have to be spelled out, and that is precisely where the overload trap did its damage. <strong>So: <code>var</code> inside methods, and deliberate <code>IQueryable</code> and <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code> types on every signature.</strong>
+    </p>
+    <p>
+      One last thing, once the filter is running in SQL: the same discipline applies to <em>columns</em>. A translated <code>Where</code> still materialises whole entities unless you project, so use <code>Select</code> into a DTO and stop paying for columns you never read. That is the rest of the same story, and the <a href="https://learn.microsoft.com/en-us/ef/core/performance/efficient-querying" target="_blank" rel="noopener noreferrer" className={styles.link}>Efficient querying</a> guidance covers it properly.
+    </p>
 
     <h2>Frequently asked questions</h2>
     <div className={styles.faq}>
@@ -245,7 +254,7 @@ Console.WriteLine(query.ToQueryString());
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Does calling AsQueryable() on a List give me SQL translation?</strong>
-        <p className={styles.faqA}>No. AsQueryable on an in-memory collection wraps it in a queryable façade whose provider still executes everything in memory. There is no database behind it and no SQL is generated. It is useful for satisfying a method signature or for testing, never for performance.</p>
+        <p className={styles.faqA}>No. AsQueryable on an in-memory collection wraps it in a queryable façade whose provider still executes everything in memory. There is no database behind it and no SQL is generated. It is useful for satisfying a method signature, never for performance. And be careful using it to fake a DbSet in tests: an EnumerableQuery has no async query provider, so any async EF Core operator - ToListAsync, FirstOrDefaultAsync, CountAsync - throws at runtime, which is why the EF Core testing docs discourage mocking DbSet and point to SQLite in-memory or your real database instead.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Should my repository return IQueryable?</strong>
