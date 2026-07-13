@@ -9,7 +9,7 @@ const IEnumerableVsIQueryable = () => (
     </div>
 
     <p className={styles.lead}>
-      Every .NET team eventually ships the same bug: a query that worked fine on a development database brings production to its knees, because somewhere a variable was typed <code>IEnumerable</code> instead of <code>IQueryable</code>. What makes it dangerous is not that it is subtle to write - it is that EF Core has a safety net for exactly this problem, and typing <code>IEnumerable</code> is how you step outside it.
+      Every .NET team eventually ships the same query: one that behaved perfectly on a development database and brings production to its knees, because somewhere a variable was typed <code>IEnumerable</code> instead of <code>IQueryable</code>. What makes it dangerous is not that it is hard to spot - it is that EF Core has a safety net for exactly this problem, and typing <code>IEnumerable</code> is how you step outside it.
     </p>
 
     <img
@@ -59,7 +59,7 @@ e = e.Where(o => o.Total > 100);`}</pre>
     </p>
     <pre className={styles.code}>{`public class OrderRepository
 {
-    // Looks harmless. It is the bug.
+    // Looks harmless. This is where it goes wrong.
     public IEnumerable<Order> GetOrders() => _db.Orders;
 }
 
@@ -201,7 +201,7 @@ Console.WriteLine(query.ToQueryString());
           </tr>
           <tr>
             <td>A repository method callers need to compose on</td>
-            <td>Return <code>IQueryable&lt;T&gt;</code> - or, better, do not let them compose: take the filter as a parameter and return a projected DTO. Returning <code>IEnumerable</code> from a repository is the classic version of this bug.</td>
+            <td>Return <code>IQueryable&lt;T&gt;</code> - or, better, do not let them compose: take the filter as a parameter and return a projected DTO. Returning <code>IEnumerable</code> from a repository is the classic way this goes wrong.</td>
           </tr>
           <tr>
             <td>C# logic inside a filter or ordering</td>

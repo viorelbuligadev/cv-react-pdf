@@ -17,7 +17,7 @@ export interface BlogPost {
 export const posts: BlogPost[] = [
   {
     slug: 'ienumerable-vs-iqueryable',
-    title: 'IEnumerable vs IQueryable in EF Core: The Bug That Compiles',
+    title: 'IEnumerable vs IQueryable in EF Core: Why the Wrong Type Loads Your Whole Table',
     description: 'The difference is not the interface - it is the type of the lambda. Queryable.Where takes an expression tree EF Core can translate to SQL; Enumerable.Where takes a delegate it cannot read. Learn why typing a query as IEnumerable loads the whole table, why EF Core\'s translation guard cannot save you there, and the overload trap that does it behind your back.',
     date: '2026-07-13',
     readTime: 8,
