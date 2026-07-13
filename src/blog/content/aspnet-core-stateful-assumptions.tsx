@@ -44,9 +44,9 @@ const AspNetCoreStatefulAssumptions = () => (
     <pre className={styles.code}>{`builder.Services.AddRateLimiter(options =>
 {
     // One bucket per API key, not one bucket for everybody
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        httpContext => RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Request.Headers["X-API-Key"].ToString(),
+    options.AddPolicy("per-api-key", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Request.Headers["X-Api-Key"].ToString(),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 100,                 // 100 requests...
