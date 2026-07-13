@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://viorelbuliga.com/blog/ef-core-transactions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://viorelbuliga.com/blog/aspnet-core-background-jobs-race-conditions</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
