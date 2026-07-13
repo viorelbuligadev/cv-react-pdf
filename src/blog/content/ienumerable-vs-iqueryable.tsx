@@ -9,7 +9,10 @@ const IEnumerableVsIQueryable = () => (
     </div>
 
     <p className={styles.lead}>
-      Every .NET team eventually ships the same query: one that behaved perfectly on a development database and brings production to its knees, because somewhere a variable was typed <code>IEnumerable</code> instead of <code>IQueryable</code>. What makes it dangerous is not that it is hard to spot - it is that EF Core has a safety net for exactly this problem, and typing <code>IEnumerable</code> is how you step outside it.
+      Type a query as <code>IEnumerable</code> instead of <code>IQueryable</code> and it still returns exactly the same rows. That is what makes it hard to catch: it passes the tests, it passes review, and on a development database with a few thousand rows there is nothing to see. The only thing that differs is the SQL - and you can check that for yourself with <code>ToQueryString()</code>. One version filters in the database; the other fetches every row and filters in your process. What that costs is not a matter of opinion. It scales with the number of rows in the table.
+    </p>
+    <p className={styles.lead}>
+      What makes it worth an article is the second half of the story: EF Core has a safety net for exactly this problem, and typing <code>IEnumerable</code> is how you step outside it.
     </p>
 
     <img
@@ -55,7 +58,7 @@ e = e.Where(o => o.Total > 100);`}</pre>
 
     <h2>What goes wrong in real code?</h2>
     <p>
-      Almost always in a repository or service boundary, where someone returns the "safer looking" interface:
+      One place it surfaces is a repository or service boundary, where the "safer looking" interface gets returned:
     </p>
     <pre className={styles.code}>{`public class OrderRepository
 {
@@ -70,18 +73,18 @@ var big = repo.GetOrders()
     .Take(20)                        // in memory
     .ToList();                       // the whole table was already loaded`}</pre>
     <p>
-      The caller wrote a perfectly reasonable query. The database received a <code>SELECT</code> over the whole table with no <code>WHERE</code>, no <code>ORDER BY</code> and no <code>TOP</code>. On ten thousand rows nobody notices. On ten million, the app falls over - and the query in the code review looked fine.
+      The caller wrote a reasonable-looking query, and it returns the right twenty orders. But the database received a <code>SELECT</code> over the whole table with no <code>WHERE</code>, no <code>ORDER BY</code> and no <code>TOP</code> - which you can confirm from the SQL log, not from the C#. The cost of that is simple arithmetic: you pay for every row in the table, every time. On ten thousand rows that is invisible. On ten million, you are transferring and materialising ten million.
     </p>
     <p>
       Be precise about what that costs, because it is worse than "it loads the table". Every row crosses the network and is <strong>materialised into an entity object</strong>. Whether they are all held in memory at once depends on the operators: a bare <code>Where</code> streams and discards as it goes, but <code>OrderByDescending</code> in LINQ-to-Objects has to see every element before it can sort even one - so in the example above, the entire table <em>is</em> buffered.
     </p>
     <div className={styles.callout}>
-      <strong>And the bill nobody mentions: change tracking.</strong> <code>db.Orders</code> is a tracking query by default, and tracking happens at materialisation - not at filtering. So every row you fetch, including the millions your delegate is about to throw away, gets a snapshot in the change tracker. The <code>DbContext</code> grows with the whole table, and any subsequent <code>SaveChanges</code> has to walk all of it. If you must pull rows to the client, <code>AsNoTracking()</code> at least stops EF Core from paying for entities you are only going to discard.
+      <strong>And the cost that is easiest to miss: change tracking.</strong> <code>db.Orders</code> is a tracking query by default, and tracking happens at materialisation - not at filtering. So every row you fetch, including every one your delegate is about to throw away, gets a snapshot in the change tracker. The <code>DbContext</code> ends up holding the whole table, and a later <code>SaveChanges</code> has to walk all of it. If you must pull rows to the client, <code>AsNoTracking()</code> at least stops EF Core from paying for entities you are only going to discard.
     </div>
 
     <h2>Why doesn't EF Core throw and save you?</h2>
     <p>
-      This is the part most articles miss, and it is the whole point.
+      This is the part that matters most, and it is easy to overlook.
     </p>
     <p>
       EF Core <em>does</em> have a guard. Since version 3.0, if it finds something it cannot translate anywhere other than the final <code>Select</code>, it refuses to silently fall back to memory. The docs are explicit: "If EF Core detects an expression, in any place other than the top-level projection, which can't be translated to the server, then it throws a runtime exception." And on filters specifically: "Because the filter can't be applied in the database, all the data needs to be pulled into memory to apply the filter on the client... So Entity Framework Core blocks such client evaluation and throws a runtime exception."
@@ -90,7 +93,7 @@ var big = repo.GetOrders()
       That guard is why an untranslatable C# method inside a <code>Where</code> blows up loudly instead of quietly scanning your table. It is a genuinely good safety net.
     </p>
     <div className={styles.callout}>
-      <strong>But the guard only works inside <code>IQueryable</code>.</strong> It fires when EF Core <em>tries to translate</em> your predicate and fails. Type the variable as <code>IEnumerable</code> and the predicate never reaches EF Core at all - the compiler bound it to <code>Enumerable.Where</code>, so there is nothing to translate, nothing to fail, and nothing to throw. You do not get an exception. You get a full table scan and a silent performance cliff.
+      <strong>But the guard only works inside <code>IQueryable</code>.</strong> It fires when EF Core <em>tries to translate</em> your predicate and fails. Type the variable as <code>IEnumerable</code> and the predicate never reaches EF Core at all - the compiler bound it to <code>Enumerable.Where</code>, so there is nothing to translate, nothing to fail, and nothing to throw. You do not get an exception. You get a <code>SELECT</code> with no <code>WHERE</code> clause, and no warning that it happened.
     </div>
     <p>
       That asymmetry is worth sitting with. An untranslatable query <strong>throws</strong>. A query you accidentally moved to the client <strong>succeeds</strong>. The louder failure is the safer one.
@@ -169,7 +172,7 @@ var flagged = (await db.Orders
       </table>
     </div>
     <p>
-      One nuance people get backwards: client evaluation in the <strong>final projection is allowed</strong>. EF Core "supports partial client evaluation in the top-level projection (essentially, the last call to <code>Select()</code>)". So calling a C# helper inside your last <code>Select</code> works without any <code>AsEnumerable</code> - EF fetches the columns it needs and runs your method on the results. It is only in a <code>Where</code>, an <code>OrderBy</code>, or a join that it throws.
+      One nuance that is easy to get backwards: client evaluation in the <strong>final projection is allowed</strong>. EF Core "supports partial client evaluation in the top-level projection (essentially, the last call to <code>Select()</code>)". So calling a C# helper inside your last <code>Select</code> works without any <code>AsEnumerable</code> - EF fetches the columns it needs and runs your method on the results. It is only in a <code>Where</code>, an <code>OrderBy</code>, or a join that it throws.
     </p>
 
     <h2>How do you prove which side you are on?</h2>
@@ -230,7 +233,7 @@ Console.WriteLine(query.ToQueryString());
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Why does typing a query as IEnumerable cause a full table scan?</strong>
-        <p className={styles.faqA}>Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker - including the ones you are about to discard. The results are still correct, which is exactly why nobody notices until the table grows.</p>
+        <p className={styles.faqA}>Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker - including the ones you are about to discard. The results are still correct, which is why it passes tests and review; the only place the difference shows up is the SQL.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Doesn't EF Core throw when it cannot translate something?</strong>
