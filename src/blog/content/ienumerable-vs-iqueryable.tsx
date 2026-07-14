@@ -136,48 +136,6 @@ public static IQueryable<T> Filter<T>(
       <strong>The rule: if a method takes a predicate that must reach the database, its type is <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>. Never <code>Func&lt;T, bool&gt;</code>.</strong>
     </p>
 
-    <h2>AsEnumerable, ToList, AsQueryable - which and when?</h2>
-    <p>
-      Switching to the client is sometimes exactly what you want. The docs list two good reasons: the amount of data is small, or the LINQ operator has no server-side translation. The point is to do it <em>deliberately</em>, and after the database has already done the heavy lifting.
-    </p>
-    <pre className={styles.code}>{`// Narrow on the server FIRST, then hand off to C#
-var flagged = (await db.Orders
-        .Where(o => o.PlacedAt > cutoff)   // SQL
-        .Where(o => o.Total > 1_000)       // SQL
-        .ToListAsync(ct))                  // executes here - a small set
-    .Where(o => IsSuspicious(o))           // C# method, impossible in SQL
-    .ToList();`}</pre>
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Call</th>
-            <th>What it does</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>AsEnumerable()</code></td>
-            <td>Switches to client evaluation but stays deferred - it <strong>streams</strong> the results. Use it when you will enumerate once.</td>
-          </tr>
-          <tr>
-            <td><code>ToList()</code></td>
-            <td>Executes immediately and <strong>buffers</strong> into a list, which "takes additional memory". Worth it if you enumerate more than once, since it is a single trip to the database.</td>
-          </tr>
-          <tr>
-            <td><code>AsQueryable()</code></td>
-            <td>On an in-memory collection this gives you <em>nothing</em> - no SQL, no translation. It wraps the list in a queryable façade that still executes in memory. It is useful for satisfying a signature, not for performance.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div className={styles.callout}>
-      <strong>And the AsQueryable trap that only shows up in tests.</strong> Wrapping a <code>List&lt;T&gt;</code> in <code>AsQueryable()</code> hands you an <code>EnumerableQuery&lt;T&gt;</code>, whose provider is not an <code>IAsyncQueryProvider</code>. So the moment the code under test calls an async EF Core operator on it - <code>ToListAsync</code>, <code>FirstOrDefaultAsync</code>, <code>CountAsync</code> - it throws at runtime, because the source is not an <code>IAsyncEnumerable</code>. That is why libraries like MockQueryable exist at all, and why the EF Core testing docs point away from this entirely: they call mocking <code>DbSet</code> for querying "complex and difficult" and discourage it, steering you toward SQLite in-memory mode or your real database system instead.
-    </div>
-    <p>
-      One nuance that is easy to get backwards: client evaluation in the <strong>final projection is allowed</strong>. EF Core "supports partial client evaluation in the top-level projection (essentially, the last call to <code>Select()</code>)". So calling a C# helper inside your last <code>Select</code> works without any <code>AsEnumerable</code> - EF fetches the columns it needs and runs your method on the results. It is only in a <code>Where</code>, an <code>OrderBy</code>, or a join that it throws.
-    </p>
-
     <h2>How do you prove which side you are on?</h2>
     <p>
       Do not guess from the type - read the SQL. On any <code>IQueryable</code>, <code>ToQueryString()</code> (EF Core 5.0 and later) gives you the statement EF Core would send:
@@ -247,14 +205,6 @@ Console.WriteLine(query.ToQueryString());
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Doesn't EF Core throw when it cannot translate something?</strong>
         <p className={styles.faqA}>Yes, but only inside IQueryable. Since EF Core 3.0, an expression it cannot translate anywhere other than the top-level projection causes a runtime exception rather than a silent client-side fallback. That guard fires when EF tries to translate and fails. If you typed the variable as IEnumerable, EF is never asked to translate anything, so there is nothing to fail and nothing to throw - you just get a table scan.</p>
-      </div>
-      <div className={styles.faqItem}>
-        <strong className={styles.faqQ}>What is the difference between AsEnumerable and ToList?</strong>
-        <p className={styles.faqA}>Both switch to client evaluation. AsEnumerable stays deferred and streams the results; ToList executes immediately and buffers everything into a list, which costs additional memory. Prefer AsEnumerable when you enumerate once, and ToList when you enumerate several times, since the list means only one trip to the database.</p>
-      </div>
-      <div className={styles.faqItem}>
-        <strong className={styles.faqQ}>Does calling AsQueryable() on a List give me SQL translation?</strong>
-        <p className={styles.faqA}>No. AsQueryable on an in-memory collection wraps it in a queryable façade whose provider still executes everything in memory. There is no database behind it and no SQL is generated. It is useful for satisfying a method signature, never for performance. And be careful using it to fake a DbSet in tests: an EnumerableQuery has no async query provider, so any async EF Core operator - ToListAsync, FirstOrDefaultAsync, CountAsync - throws at runtime, which is why the EF Core testing docs discourage mocking DbSet and point to SQLite in-memory or your real database instead.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Should my repository return IQueryable?</strong>
