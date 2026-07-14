@@ -5,7 +5,7 @@ const IEnumerableVsIQueryable = () => (
   <div className={styles.article}>
 
     <div className={styles.quickAnswer}>
-      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. EF Core only ever translates what you composed while the query was still an <code>IQueryable</code>. Every operator you apply <em>after</em> the type becomes <code>IEnumerable&lt;T&gt;</code> runs in your process instead - so if the type changed before you filtered, EF Core fetches, materialises and tracks every row in the table to feed it.
+      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. EF Core only ever translates what you composed while the query was still an <code>IQueryable</code>. Every operator you apply <em>after</em> the type becomes <code>IEnumerable&lt;T&gt;</code> runs in your process instead, so EF Core fetches, materialises and - by default - tracks every row the query had accumulated up to the switch point: the entire table, if the switch happens right at the <code>DbSet</code>.
     </div>
 
     <p className={styles.lead}>
@@ -47,6 +47,9 @@ e = e.Where(o => o.Total > 100);`}</pre>
     <p>
       <strong>Read "subsequent" literally, because the position of the change is the whole story.</strong> Overload resolution happens at each call site, against the type the receiver has <em>at that point</em>. So <code>IEnumerable&lt;Order&gt; e = db.Orders.Where(o =&gt; o.Total &gt; 100);</code> is fine - the <code>Where</code> ran on an <code>IQueryable</code> and was translated, and the assignment afterwards is only an upcast of a query that is already built. It does not rewrite history. What breaks is the other order: upcast first, <em>then</em> filter. That is why the damage happens at boundaries - a method that <em>returns</em> <code>IEnumerable</code> forces every caller into the second shape.
     </p>
+    <p>
+      A piece of trivia that follows from this: the object behind an <code>IEnumerable</code>-typed variable is still the real <code>IQueryable</code> - only the static type changed. <code>Enumerable.AsQueryable()</code> notices that and hands the original query back rather than wrapping it, so calling <code>.AsQueryable()</code> on such a variable genuinely restores SQL translation. Worth knowing; not worth relying on. Fix the type instead.
+    </p>
 
     <h2>Why does EF Core need an expression tree?</h2>
     <p>
@@ -82,7 +85,7 @@ var big = repo.GetOrders()
       Be precise about what that costs, because it is worse than "it loads the table". Every row crosses the network and is <strong>materialised into an entity object</strong>. Whether they are all held in memory at once depends on the operators: a bare <code>Where</code> streams and discards as it goes, but <code>OrderByDescending</code> in LINQ-to-Objects has to see every element before it can sort even one - so in the example above, the entire table <em>is</em> buffered.
     </p>
     <div className={styles.callout}>
-      <strong>And the cost that is easiest to miss: change tracking.</strong> <code>db.Orders</code> is a tracking query by default, and tracking happens at materialisation - not at filtering. So every row you fetch, including every one your delegate is about to throw away, gets a snapshot in the change tracker. The <code>DbContext</code> ends up holding the whole table, and a later <code>SaveChanges</code> has to walk all of it. If you must pull rows to the client, <code>AsNoTracking()</code> at least stops EF Core from paying for entities you are only going to discard.
+      <strong>And the cost that is easiest to miss: change tracking.</strong> <code>db.Orders</code> is a tracking query by default, and tracking happens at materialisation - not at filtering. So every row you fetch, including every one your delegate is about to throw away, gets a snapshot in the change tracker. The <code>DbContext</code> ends up holding the whole table, and a later <code>SaveChanges</code> has to walk all of it. If you must pull rows to the client, <code>AsNoTracking()</code> at least stops EF Core from paying for entities you are only going to discard. Which also settles the paragraph above: "streams and discards as it goes" is only true of a <em>no-tracking</em> query - on a tracked one the <code>DbContext</code> keeps a reference to every entity it materialised, whatever operators you used, so nothing is really discarded until the context is disposed.
     </div>
 
     <h2>Why doesn't EF Core throw and save you?</h2>
@@ -149,7 +152,7 @@ Console.WriteLine(query.ToQueryString());
 // FROM [Orders] AS [o]
 // WHERE [o].[Total] > 100.0`}</pre>
     <p>
-      If the <code>WHERE</code> you expect is missing, your filter is running in memory. And note that you cannot even call <code>ToQueryString()</code> once the variable is an <code>IEnumerable</code> - the method does not exist there. That failure to compile is itself the answer.
+      If the <code>WHERE</code> you expect is missing, your filter is running in memory. (It is a debugging aid, so read it as indicative rather than exact - what it renders can differ marginally from what is actually executed, particularly in how parameter values are shown.) And note that you cannot even call <code>ToQueryString()</code> once the variable is an <code>IEnumerable</code> - the method does not exist there. That failure to compile is itself the answer.
     </p>
 
     <h2>When should you use each?</h2>
@@ -203,7 +206,7 @@ Console.WriteLine(query.ToQueryString());
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Why does typing a query as IEnumerable cause a full table scan?</strong>
-        <p className={styles.faqA}>It does so when the type changes before you filter - which is the usual case, because a repository returns IEnumerable and the caller filters afterwards. The compiler then binds every operator to the in-memory versions, EF Core is never given the predicate, and it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker, including the ones you are about to discard. Note the ordering matters: anything you composed while the query was still IQueryable is still translated, so an IQueryable filtered first and only then assigned to an IEnumerable variable does produce a proper WHERE clause.</p>
+        <p className={styles.faqA}>It does so when the type changes before you filter - which is the usual case, because a repository returns IEnumerable and the caller filters afterwards. The compiler then binds every operator to the in-memory versions, EF Core is never given the predicate, and it cannot put it in the WHERE clause. It sends a SELECT with no WHERE and reads and transfers the entire table - the point being that every row crosses the wire and is materialised into an entity, not which operator the execution plan happens to pick - and your delegate then filters them in your process. Worse, a tracking query (the default) snapshots every one of those entities in the change tracker, including the ones you are about to discard. Note the ordering matters: anything you composed while the query was still IQueryable is still translated, so an IQueryable filtered first and only then assigned to an IEnumerable variable does produce a proper WHERE clause.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Doesn't EF Core throw when it cannot translate something?</strong>
