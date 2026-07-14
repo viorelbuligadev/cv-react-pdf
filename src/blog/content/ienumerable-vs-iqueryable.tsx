@@ -5,7 +5,7 @@ const IEnumerableVsIQueryable = () => (
   <div className={styles.article}>
 
     <div className={styles.quickAnswer}>
-      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. So the moment a query is typed as <code>IEnumerable&lt;T&gt;</code>, every operator after it runs in your process - and EF Core fetches every row of the table, and tracks them, to feed it.
+      <strong>Quick answer:</strong> The difference is not the interface - it is the <em>type of the lambda</em>. <code>Queryable.Where</code> takes an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>, a data structure EF Core can read and translate into SQL. <code>Enumerable.Where</code> takes a plain <code>Func&lt;T, bool&gt;</code>, a compiled delegate EF Core cannot see inside. EF Core only ever translates what you composed while the query was still an <code>IQueryable</code>. Every operator you apply <em>after</em> the type becomes <code>IEnumerable&lt;T&gt;</code> runs in your process instead - so if the type changed before you filtered, EF Core fetches, materialises and tracks every row in the table to feed it.
     </div>
 
     <p className={styles.lead}>
@@ -44,6 +44,9 @@ e = e.Where(o => o.Total > 100);`}</pre>
     <div className={styles.callout}>
       <strong>The variable's type picks the overload.</strong> Nothing else changed - not the lambda, not the query, not the LINQ method name. Writing <code>IEnumerable&lt;Order&gt;</code> instead of <code>IQueryable&lt;Order&gt;</code> silently binds every subsequent <code>Where</code>, <code>OrderBy</code> and <code>Take</code> to the in-memory version.
     </div>
+    <p>
+      <strong>Read "subsequent" literally, because the position of the change is the whole story.</strong> Overload resolution happens at each call site, against the type the receiver has <em>at that point</em>. So <code>IEnumerable&lt;Order&gt; e = db.Orders.Where(o =&gt; o.Total &gt; 100);</code> is fine - the <code>Where</code> ran on an <code>IQueryable</code> and was translated, and the assignment afterwards is only an upcast of a query that is already built. It does not rewrite history. What breaks is the other order: upcast first, <em>then</em> filter. That is why the damage happens at boundaries - a method that <em>returns</em> <code>IEnumerable</code> forces every caller into the second shape.
+    </p>
 
     <h2>Why does EF Core need an expression tree?</h2>
     <p>
@@ -200,7 +203,7 @@ Console.WriteLine(query.ToQueryString());
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Why does typing a query as IEnumerable cause a full table scan?</strong>
-        <p className={styles.faqA}>Because the compiler binds every subsequent operator to the in-memory versions. EF Core is never given the predicate, so it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker - including the ones you are about to discard. The results are still correct, which is why it passes tests and review; the only place the difference shows up is the SQL.</p>
+        <p className={styles.faqA}>It does so when the type changes before you filter - which is the usual case, because a repository returns IEnumerable and the caller filters afterwards. The compiler then binds every operator to the in-memory versions, EF Core is never given the predicate, and it cannot put it in the WHERE clause. It sends a SELECT with no WHERE, materialises every row into an entity, and your delegate filters them in your process. Worse, a tracking query snapshots every one of those entities in the change tracker, including the ones you are about to discard. Note the ordering matters: anything you composed while the query was still IQueryable is still translated, so an IQueryable filtered first and only then assigned to an IEnumerable variable does produce a proper WHERE clause.</p>
       </div>
       <div className={styles.faqItem}>
         <strong className={styles.faqQ}>Doesn't EF Core throw when it cannot translate something?</strong>
