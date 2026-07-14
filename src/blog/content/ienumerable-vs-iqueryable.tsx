@@ -175,7 +175,7 @@ Console.WriteLine(query.ToQueryString());
           </tr>
           <tr>
             <td>C# logic inside a filter or ordering</td>
-            <td>Narrow on the server first, then <code>AsEnumerable()</code> or <code>ToListAsync()</code>, then apply it.</td>
+            <td>Narrow on the server first, then <a href="/blog/asenumerable-vs-tolist-vs-asqueryable" className={styles.link}><code>AsEnumerable()</code> or <code>ToListAsync()</code></a>, then apply it.</td>
           </tr>
           <tr>
             <td>C# logic inside the final <code>Select</code></td>
