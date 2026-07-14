@@ -16,6 +16,23 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'asenumerable-vs-tolist-vs-asqueryable',
+    title: 'AsEnumerable vs ToList vs AsQueryable in EF Core: Where SQL Stops and C# Starts',
+    description: 'All three decide where your query stops being SQL and starts being C#. AsEnumerable streams and stays deferred; ToList buffers and runs immediately; AsQueryable on a List buys you nothing. Learn where to put the hand-off, why the streaming promise needs AsNoTracking, and the AsQueryable trap that only breaks in your tests.',
+    date: '2026-07-14',
+    readTime: 8,
+    tags: ['.NET', 'EF Core', 'C#', 'LINQ', 'Testing'],
+    image: '/images/handoff.png',
+    faq: [
+      { q: 'What is the difference between AsEnumerable and ToList?', a: 'Both switch the query to client evaluation. AsEnumerable stays deferred and streams the results; ToList executes immediately and buffers everything into a list, which takes additional memory. Prefer AsEnumerable when you pass through the rows once, and ToList when you enumerate several times, since the list means only one trip to the database.' },
+      { q: 'Does AsEnumerable really use constant memory?', a: 'Only on a no-tracking query. On a tracking query - the default - the DbContext keeps a reference to every entity it materialises, no matter which operators you use afterwards, so the rows are not really released until the context is disposed. If you are streaming rows in order to discard most of them, combine AsEnumerable with AsNoTracking.' },
+      { q: 'Does calling AsQueryable() on a List give me SQL translation?', a: 'No. On an in-memory collection it produces an EnumerableQuery, a queryable-shaped wrapper whose provider still executes everything in memory. There is no database behind it, so no SQL is generated and none can be. It satisfies a method signature; it does not make anything faster.' },
+      { q: 'Why does ToListAsync throw when I mock a DbSet with AsQueryable?', a: 'Because an EnumerableQuery\'s provider is not an IAsyncQueryProvider and the source is not an IAsyncEnumerable, so EF Core\'s async operators - ToListAsync, FirstOrDefaultAsync, CountAsync - have nothing to work with and throw at runtime. It is why libraries like MockQueryable exist, and why the EF Core testing docs call mocking DbSet for querying "complex and difficult" and discourage it, pointing to SQLite in-memory mode or your real database system instead.' },
+      { q: 'Do I need AsEnumerable to call a C# method in my query?', a: 'Not if the method is only in the final Select. EF Core supports partial client evaluation in the top-level projection, so it fetches the columns it needs and runs your method on the results. You only need a hand-off when the untranslatable code sits in a Where, an OrderBy, or a join - and there EF Core throws rather than silently pulling the table into memory.' },
+      { q: 'Can AsQueryable() rescue a query that was typed as IEnumerable?', a: 'Yes, technically. If the object is still a real EF Core query and was only typed as IEnumerable, AsQueryable returns the original IQueryable, provider intact, so subsequent operators are translated again. It is a good demonstration that the static type was the only problem - but it is a patch over a broken signature. Fix the type instead.' },
+    ],
+  },
+  {
     slug: 'ienumerable-vs-iqueryable',
     title: 'IEnumerable vs IQueryable in EF Core: Why the Wrong Type Loads Your Whole Table',
     description: 'The difference is not the interface - it is the type of the lambda. Queryable.Where takes an expression tree EF Core can translate to SQL; Enumerable.Where takes a delegate it cannot read. Learn why switching to IEnumerable before you filter makes EF Core load the whole table, why its translation guard cannot save you there, and the overload trap that does it behind your back.',
