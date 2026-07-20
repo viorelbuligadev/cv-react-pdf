@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://viorelbuliga.com/blog/extended-http-logging-stream-consumed</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://viorelbuliga.com/blog/asenumerable-vs-tolist-vs-asqueryable</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
