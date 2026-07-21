@@ -16,6 +16,22 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: 'extended-http-logging-stream-consumed',
+    title: '"The Stream Was Already Consumed": AddExtendedHttpClientLogging Breaks in Debug Builds',
+    description: 'On Microsoft.Extensions.Http.Diagnostics 9.1+ (including 10.x), AddExtendedHttpClientLogging with LogBody=true consumes the response stream before your code reads it - but only in Debug builds. Release works fine, which makes it look unreproducible. The symptom, the SendAsync + ResponseHeadersRead workaround, and how to reproduce it in two small projects.',
+    date: '2026-07-14',
+    readTime: 5,
+    tags: ['.NET', 'HttpClient', 'IHttpClientFactory', 'Diagnostics', 'Backend'],
+    image: '/images/httpstream.png',
+    faq: [
+      { q: 'What causes "The stream was already consumed" with extended HTTP logging?', a: 'With LogBody enabled, the diagnostics handler reads the response content stream to log it. If the caller then reads HttpResponseMessage.Content again, the stream has already been consumed and the second read throws. It surfaces with the default ResponseContentRead completion option used by GetAsync and PostAsJsonAsync.' },
+      { q: 'Why does it only happen in Debug and not in Release?', a: 'That is the observed behaviour: the same code throws in a Debug build and succeeds in a Release one. I have not proven the mechanism. Debug and Release differ in JIT optimisation and therefore in timing, which is enough to change the behaviour of anything timing-sensitive - and this handler has a timing knob in BodyReadTimeout. That is the first hypothesis I would test, not a conclusion. The practical takeaway is simpler: if a failure will not reproduce in a clean project, check the build configuration before blaming the handler pipeline.' },
+      { q: 'Which package versions are affected?', a: 'I saw it on Microsoft.Extensions.Http.Diagnostics 9.1 and later, including 10.x, running on .NET 10. It did not occur on 9.0 or earlier. Those are the bounds I tested rather than an exhaustive range, so check your own version against the reproduction.' },
+      { q: 'Does switching to ResponseHeadersRead have downsides?', a: 'Yes. With ResponseHeadersRead, HttpClient.Timeout only covers reading the headers, not the body. You must enforce a timeout on the content read yourself, typically with a CancellationToken carrying its own deadline. Otherwise a server that sends headers quickly but stalls on the body can hang the read.' },
+      { q: 'Can I just turn off body logging instead?', a: 'Setting LogBody to false does avoid the problem, since nothing reads the body for logging. It is the right fix if you do not need response bodies in your logs. If you do need them, the SendAsync plus ResponseHeadersRead workaround keeps both the logging and your own read working.' },
+    ],
+  },
+  {
     slug: 'asenumerable-vs-tolist-vs-asqueryable',
     title: 'AsEnumerable vs ToList vs AsQueryable in EF Core: Where SQL Stops and C# Starts',
     description: 'All three decide where your query stops being SQL and starts being C#. AsEnumerable streams and stays deferred; ToList buffers and runs immediately; AsQueryable on a List buys you nothing. Learn where to put the hand-off, why the streaming promise needs AsNoTracking, and the AsQueryable trap that only breaks in your tests.',

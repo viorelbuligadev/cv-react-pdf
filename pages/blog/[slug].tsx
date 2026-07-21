@@ -7,6 +7,7 @@ import { posts, BlogPost } from '../../src/blog/posts';
 import styles from '../../styles/BlogPost.module.css';
 
 const contentMap: Record<string, React.ComponentType> = {
+  'extended-http-logging-stream-consumed': dynamic(() => import('../../src/blog/content/extended-http-logging-stream-consumed')),
   'asenumerable-vs-tolist-vs-asqueryable': dynamic(() => import('../../src/blog/content/asenumerable-vs-tolist-vs-asqueryable')),
   'ienumerable-vs-iqueryable': dynamic(() => import('../../src/blog/content/ienumerable-vs-iqueryable')),
   'ef-core-transactions': dynamic(() => import('../../src/blog/content/ef-core-transactions')),
